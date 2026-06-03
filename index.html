@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LkoStp Couriers | Same Day Delivery Lucknow to Sitapur</title>
+    <meta name="description" content="Lucknow se Sitapur ya Sitapur se Lucknow apna parcel bhejein sirf 3 se 5 ghante me. Sabse tez, sasta aur surakshit train-based courier service. Aaj hi book karein!">
+    <meta name="keywords" content="same day delivery lucknow sitapur, courier service sitapur to lucknow, fast parcel delivery, lkostp couriers, lucknow sitapur transport, local cargo service">
+    
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
+    <link rel="canonical" href="https://lkostpcouriers.com/">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root { 
+            --primary: #0c1c3a; 
+            --gold: #ffc107; 
+            --purple: #7b1fa2;
+            --bg: #f8fafc; 
+            --white: #ffffff; 
+            --text-muted: #64748b;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body {   
+            background: var(--bg);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        nav {
+            background: var(--primary);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo { color: var(--gold); font-weight: 800; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .nav-right { display: flex; gap: 8px; align-items: center; position: relative; }
+
+        /* Profile Menu */
+        .profile-container { position: relative; display: flex; align-items: center; }
+        .profile-trigger {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            object-fit: cover;
+            cursor: pointer;
+            background: #e2e8f0;
+        }
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background: var(--white);
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 210px;
+            padding: 8px 0;
+            z-index: 1001;
+            border: 1px solid #e2e8f0;
+        }
+        .profile-dropdown.show { display: block; }
+        
+        .user-info-header {
+            padding: 10px 15px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 5px;
+        }
+        .user-info-header span { font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: 800; display: block; }
+        .user-info-header p { font-size: 12px; color: var(--primary); font-weight: 800; margin: 0; word-break: break-all; }
+
+        .profile-dropdown button, .profile-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 15px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--primary);
+            border: none;
+            background: none;
+            cursor: pointer;
+            text-align: left;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+        .profile-dropdown button:hover, .profile-dropdown a:hover { background: #f1f5f9; }
+        .profile-dropdown .logout-item { color: var(--danger); border-top: 1px solid #f1f5f9; margin-top: 5px; padding-top: 12px; }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(12, 28, 58, 0.9), rgba(12, 28, 58, 0.8)), url('https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&q=80');
+            background-size: cover;
+            background-position: center;
+            padding: 50px 25px;
+            text-align: center;
+            border-radius: 0 0 40px 40px;
+            color: white;
+        }
+        .hero-badge {
+            background: var(--gold);
+            color: var(--primary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+            display: inline-block;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .hero h1 { font-size: 28px; font-weight: 800; line-height: 1.2; margin-bottom: 20px; }
+        .hero-btns { display: flex; gap: 12px; justify-content: center; margin-top: 25px; }
+        
+        .btn-main {
+            background: var(--gold);
+            color: var(--primary);
+            padding: 15px 25px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 13px;
+            flex: 1;
+            max-width: 160px;
+            box-shadow: 0 8px 20px rgba(255,193,7,0.3);
+            text-align: center;
+            cursor: pointer;
+        }
+        .btn-sec {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 13px;
+            flex: 1;
+            max-width: 140px;
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 25px 20px;
+            margin-top: -30px;
+        }
+        .f-box {
+            background: var(--white);
+            padding: 18px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+        .f-box i { font-size: 22px; color: var(--gold); margin-bottom: 4px; }
+        .f-box span { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+        .f-box small { font-size: 9px; color: var(--text-muted); line-height: 1.3; }
+
+        .trust-banner {
+            margin: 0 20px 25px;
+            padding: 12px;
+            background: #eef2ff;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #e0e7ff;
+        }
+        .trust-banner i { color: #4f46e5; font-size: 18px; }
+        .trust-banner p { font-size: 10px; font-weight: 700; color: #3730a3; }
+
+        .section-header {
+            padding: 0 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .section-header h3 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Orders list UI elements */
+        .order-list { padding: 0 20px; }
+        .order-container { background: var(--white); border-radius: 15px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); overflow: hidden; border: 1px solid #e2e8f0; }
+        .order-summary-bar { padding: 12px 15px; display: grid; grid-template-columns: 20px 50px 1fr 65px 35px; align-items: center; cursor: pointer; background: var(--white); transition: background 0.2s; }
+        .order-summary-bar:hover { background: #f8fafc; }
+        
+        .grid-center { text-align: center; display: flex; justify-content: center; align-items: center; }
+        .grid-right { text-align: right; font-weight: 800; }
+
+        .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+        .status-pending { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+        .status-transit { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+        .status-delivered { background: var(--success); box-shadow: 0 0 6px var(--success); }
+        .status-cancelled { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+        
+        .bar-parcel-preview { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid #e2e8f0; background: #f1f5f9; }
+        .route-badge { background: #f1f5f9; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 10px; text-align: center; display: inline-block; }
+        .fare-txt { font-weight: 800; font-size: 13px; color: #1e293b; }
+        
+        .arrow-btn { background: none; border: none; font-size: 12px; color: #64748b; transition: transform 0.3s; cursor: pointer; }
+        .order-container.active .arrow-btn { transform: rotate(180deg); color: var(--primary); }
+        .order-details-panel { display: none; padding: 15px; background: #fafafa; border-top: 1px dashed #e2e8f0; }
+        .order-container.active .order-details-panel { display: block; }
+        
+        .details-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .client-photo-grid { display: flex; gap: 8px; margin: 10px 0; overflow-x: auto; padding-bottom: 5px; }
+        .client-thumb { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; cursor: pointer; border: 1.5px solid #e2e8f0; }
+        .info-label { color: #888; font-weight: 800; font-size: 9px; text-transform: uppercase; display: block; margin-top: 8px; margin-bottom: 2px; }
+
+        .action-menu-container { position: relative; display: inline-block; }
+        .dots-btn { background: none; border: none; font-size: 20px; color: #475569; padding: 4px 8px; cursor: pointer; font-weight: bold; line-height: 1; }
+        .dots-dropdown { display: none; position: absolute; right: 0; top: 30px; background: var(--white); min-width: 195px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; z-index: 2000; border: 1px solid #e2e8f0; overflow: hidden; }
+        .dots-dropdown.show { display: block; }
+        .dots-dropdown button, .dots-dropdown a { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; font-size: 11px; font-weight: 700; color: var(--primary); border: none; background: none; text-decoration: none; cursor: pointer; text-align: left; transition: background 0.2s; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; }
+        .dots-dropdown button:hover, .dots-dropdown a:hover { background: #f8fafc; }
+
+        .approval-notice { background: #fff3e0; border: 1.5px dashed #ffd180; color: #e65100; padding: 10px; border-radius: 10px; font-size: 10px; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; }
+        #noData, #noRecent { text-align: center; padding: 30px; color: var(--text-muted); font-size: 12px; font-weight: 600; }
+
+        /* Bottom Sheet & Modals */
+        .rate-sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 28, 58, 0.5); backdrop-filter: blur(4px); z-index: 9999; display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .rate-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: var(--white); border-radius: 30px 30px 0 0; box-shadow: 0 -15px 35px rgba(0,0,0,0.15); z-index: 10000; padding: 20px; max-height: 80vh; overflow-y: auto; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15); }
+        .rate-sheet-overlay.open { display: block; opacity: 1; }
+        .rate-sheet-overlay.open .rate-sheet { bottom: 0; }
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f1f5f9; }
+        .sheet-title { font-size: 15px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+        .sheet-close { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 14px; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        .designer-rate-grid { display: flex; flex-direction: column; gap: 10px; }
+        .rate-card { background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 18px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); }
+        .rate-info-left { display: flex; align-items: center; gap: 12px; }
+        .rate-icon-box { width: 40px; height: 40px; background: #fff3e0; color: #e65100; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .rate-item-name { font-size: 12.5px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+        .rate-item-desc { font-size: 10px; color: var(--text-muted); display: block; margin-top: 1px; }
+        .rate-price-badge { background: var(--primary); color: var(--gold); padding: 6px 14px; border-radius: 12px; font-weight: 800; font-size: 13px; box-shadow: 0 4px 10px rgba(12,28,58,0.15); }
+
+        .login-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 28, 58, 0.6); backdrop-filter: blur(5px); z-index: 10005; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .login-modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .login-card { background: var(--white); width: 90%; max-width: 360px; padding: 25px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15); }
+        .login-modal-overlay.show .login-card { transform: scale(1); }
+        .login-card h2 { font-size: 18px; color: var(--primary); font-weight: 800; margin-bottom: 8px; }
+        .login-card p { font-size: 11px; color: var(--text-muted); margin-bottom: 20px; }
+        .login-btn-redirect { background: var(--gold); color: var(--primary); width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,193,7,0.3); text-transform: uppercase; }
+        .login-card-close { position: absolute; top: 15px; right: 20px; font-size: 16px; color: var(--text-muted); cursor: pointer; font-weight: bold; }
+
+        .img-modal { display: none; position: fixed; z-index: 5000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
+        .img-modal-content { max-width: 90%; max-height: 80%; border-radius: 10px; }
+        .toast-notification { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 12px 24px; border-radius: 50px; font-size: 12px; font-weight: 700; z-index: 10000; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid rgba(255,255,255,0.1); }
+        .toast-notification.show { top: 25px; }
+        .toast-notification i { color: var(--gold); font-size: 14px; }
+        
+        .reviews-container { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
+        .review-card { background: var(--white); border-radius: 18px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; display: flex; gap: 12px; align-items: flex-start; }
+        .reviewer-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--gold); background: #f1f5f9; flex-shrink: 0; }
+        .review-content h4 { font-size: 12px; font-weight: 800; color: var(--primary); margin-bottom: 2px; }
+        .review-content .stars { color: var(--gold); font-size: 9px; margin-bottom: 4px; }
+        .review-content p { font-size: 11px; color: #475569; line-height: 1.4; font-style: italic; }
+
+        .faq-container { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; }
+        .faq-item { background: var(--white); border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
+        .faq-question { padding: 14px 15px; font-size: 11.5px; font-weight: 800; color: var(--primary); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s; }
+        .faq-answer { display: none; padding: 12px 15px; font-size: 11px; color: #475569; border-top: 1px dashed #e2e8f0; background: #fafafa; line-height: 1.5; }
+        .faq-item.active .faq-answer { display: block; }
+        .faq-item.active .faq-icon { transform: rotate(180deg); color: var(--gold); }
+        .faq-icon { font-size: 10px; color: #94a3b8; transition: transform 0.3s; }
+    </style>
+</head>
+<body>
+    
+    <div id="toastNotification" class="toast-notification">
+        <i class="fas fa-info-circle"></i> <span id="toastMessage">Notification Text</span>
+    </div>
+
+    <div id="globalImgModal" class="img-modal" onclick="this.style.display='none'">
+        <img class="img-modal-content" id="previewImg" loading="lazy">
+    </div>
+
+    <div id="loginModalOverlay" class="login-modal-overlay">
+        <div class="login-card" style="position: relative;">
+            <div class="login-card-close" onclick="closeLoginModal()">✕</div>
+            <i class="fas fa-user-shield" style="font-size: 40px; color: var(--gold); margin-bottom: 15px;"></i>
+            <h2>Authentication Required</h2>
+            <p>Parcel book karne ya tracking dekhne ke liye kripya pehle apne mobile number se login karein.</p>
+            <button class="login-btn-redirect" onclick="redirectToLogin()">Go To Login Portal</button>
+        </div>
+    </div>
+
+    <div id="rateSheetOverlay" class="rate-sheet-overlay" onclick="closeRateSheet()">
+        <div class="rate-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-header">
+                <span class="sheet-title"><i class="fas fa-tags"></i> Standard Delivery Rates</span>
+                <button class="sheet-close" onclick="closeRateSheet()">✕</button>
+            </div>
+            <div class="designer-rate-grid" id="rateSheetContent">
+                <div style="text-align:center; padding:20px; font-size:12px; color:var(--text-muted);">Loading system rates...</div>
+            </div>
+        </div>
+    </div>
+
+    <nav>
+        <div class="logo">LkoStp Couriers</div>
+        <div class="nav-right">
+            <div class="profile-container">
+                <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/></svg>" 
+                     class="profile-trigger" id="userProfilePic" onclick="toggleProfileDropdown(event)" alt="Profile">
+                
+                <!-- REFRESHED DOCK CONDITIONAL MENU -->
+                <div class="profile-dropdown" id="profileDropdown">
+                    <!-- Dynamic segments inject through engine -->
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-badge">Shipping starts at ₹199</div>
+        <h1>Fastest Train<br>Logistics Service</h1>
+        <p style="font-size: 12px; opacity: 0.9; margin-bottom: 20px;">LUCKNOW ⇋ SITAPUR Same-day delivery via Express Trains</p>
+        <div class="hero-btns">
+            <div class="btn-main" onclick="handleBookingClick()">BOOK PARCEL</div>
+            <div class="btn-sec" onclick="openRateSheet()">CHECK RATES</div>
+        </div>
+    </div>
+    
+    <div class="features-grid">
+        <div class="f-box"><i class="fas fa-bolt"></i><span>Same Day</span><small>Delivery within 5-6 hours.</small></div>
+        <div class="f-box"><i class="fas fa-train"></i><span>Express Rail</span><small>Direct transit via Lucknow.</small></div>
+        <div class="f-box"><i class="fas fa-shield-alt"></i><span>100% Safe</span><small>Secure luggage van.</small></div>
+        <div class="f-box"><i class="fas fa-rupee-sign"></i><span>Low Cost</span><small>Cheaper than courier.</small></div>
+    </div>
+
+    <div class="trust-banner">
+        <i class="fas fa-certificate"></i>
+        <p>Trusted by 500+ Local Merchants in Sitapur & Lucknow</p>
+    </div>
+
+    <div class="section-header"><h3>Active Tracking</h3></div>
+    <div class="order-list" id="activeList">
+        <div id="noData">FASTEST COURIER SERVICE BETWEEN LUCKNOW AND SITAPUR</div>
+    </div>
+
+    <div class="section-header" style="margin-top: 30px;"><h3>Recent Deliveries</h3></div>
+    <div class="order-list" id="recentList">
+        <div id="noRecent">NO RECENT ORDERS FOUND</div>
+    </div>
+
+    <div class="section-header" style="margin-top: 30px;"><h3>Merchant Reviews</h3></div>
+    <div class="reviews-container">
+        <div class="review-card">
+            <img src="https://res.cloudinary.com/dcbnhbnoi/image/upload/v1779776552/rpvrivijzq052lmdhinx.jpg" class="reviewer-img" alt="User" loading="lazy">
+            <div class="review-content">
+                <h4>Satyam Kanojiya (Lab)</h4>
+                <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                <p>"Lab Ki Jaach Lene Dene Roj Lucknow Jana Padta Tha Ab Inko Bolkar Lucknow Se Reports Lena Uar Magana Kafi Aasan ho Gya Hai Lab Me Ye Lab To Lab Delivery bhi Dete Hai"</p>
+            </div>
+        </div>
+        <div class="review-card">
+            <img src="https://res.cloudinary.com/dcbnhbnoi/image/upload/v1780103529/pixwhoyhuyhicrn6ajag.jpg" class="reviewer-img" alt="User" loading="lazy">
+            <div class="review-content">
+                <h4> Priya Chauhan</h4>
+                <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                <p>"Mummy ki Dawai Lucknow Se Magwani Thi Friends Ko bolkar Dawai Inke Hatho Courier kara di 5 Ghnte Me Home delivery Mil gyi"</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-header" style="margin-top: 30px;"><h3>Frequently Asked Questions</h3></div>
+    <div class="faq-container">
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Aap kis tarah ke parcel deliver karte hain?</span>
+                <i class="fas fa-chevron-down faq-icon"></i>
+            </div>
+            <div class="faq-answer">
+                Hum dukan ka saman (jaise kapde, cosmetics, electronics), medical reports, aur ghar ka zaruri saman safely deliver karte hain. Hum 15kg tak ke parcels ke liye specialized service dete hain.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Delivery me kitna samay lagta hai?</span>
+                <i class="fas fa-chevron-down faq-icon"></i>
+            </div>
+            <div class="faq-answer">
+                Train dispatch slot se agle 3 se 5 ghante ke andar aapka parcel Sitapur se Lucknow ya Lucknow se Sitapur safely pahunch jata hai.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC2r-fGV1DycoIdxlVWad46ovdI8GWN3n4",
+            authDomain: "sitapur-express.firebaseapp.com",
+            databaseURL: "https://sitapur-express-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sitapur-express"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        function formatTimestamp(ts) {
+            if (!ts || ts === "N/A" || ts === "Pending Delivery") return ts;
+            if (isNaN(ts)) return ts; 
+            const date = new Date(Number(ts));
+            if (isNaN(date.getTime())) return ts;
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            const formattedDate = date.toLocaleDateString('en-IN', options);
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            return `${formattedDate}, ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+        }
+
+        // ⚡ CONDITIONAL RENDER DROP ENGINE
+        function checkUserAuthEngine() {
+            listenToRates();
+            
+            const loggedInUserPhone = localStorage.getItem("user_phone");
+            const isLogged = localStorage.getItem("user_logged_in");
+            const dropdown = document.getElementById('profileDropdown');
+
+            if (isLogged === "true" && loggedInUserPhone) {
+                // Render view when user session is active
+                dropdown.innerHTML = `
+                    <div class="user-info-header">
+                        <span>Logged In As</span>
+                        <p id="displayUserPhone">${loggedInUserPhone}</p>
+                    </div>
+                    <button onclick="triggerProfilePhotoUpdate()">
+                        <i class="fas fa-camera"></i> Update Photo
+                    </button>
+                    <button class="logout-item" onclick="triggerLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                `;
+                
+                // Fetch user specific customized profile photo from RTDB
+                fetchUserProfilePic(loggedInUserPhone);
+                loadOrdersByPhone(loggedInUserPhone);
+            } else {
+                // Render view when session is empty/guest
+                dropdown.innerHTML = `
+                    <button onclick="redirectToLogin()">
+                        <i class="fas fa-sign-in-alt"></i> Login Now
+                    </button>
+                `;
+                document.getElementById('userProfilePic').src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/></svg>";
+                document.getElementById('activeList').innerHTML = '<div id="noData">BOOK YOUR PARCEL TO SEE ACTIVE TRACKING</div>';
+                document.getElementById('recentList').innerHTML = '<div id="noRecent">BOOK YOUR PARCEL AT BEST RATE WITH OUR SITE</div>';
+            }
+        }
+
+        // ⚡ PROFILE PICTURE FLOW FROM FIREBASE
+        function fetchUserProfilePic(phone) {
+            const cleanPhone = phone.replace("+", "").trim();
+            db.ref('users/' + cleanPhone).on('value', (snapshot) => {
+                if(snapshot.exists() && snapshot.val().profile_pic) {
+                    document.getElementById('userProfilePic').src = snapshot.val().profile_pic;
+                }
+            });
+        }
+
+        function triggerProfilePhotoUpdate() {
+            const newPhotoUrl = prompt("Apni nayi profile photo ka URL enter karein:");
+            const loggedInUserPhone = localStorage.getItem("user_phone");
+            
+            if (newPhotoUrl && newPhotoUrl.trim() !== "" && loggedInUserPhone) {
+                const cleanPhone = loggedInUserPhone.replace("+", "").trim();
+                db.ref('users/' + cleanPhone).update({
+                    profile_pic: newPhotoUrl.trim()
+                }).then(() => {
+                    showNotification("Profile photo successfully updated!", "fa-check-circle");
+                }).catch((error) => {
+                    showNotification("Error saving photo node", "fa-exclamation-triangle");
+                });
+            }
+        }
+
+        window.onload = function() {
+            checkUserAuthEngine();
+        };
+
+        function handleBookingClick() {
+            const isLogged = localStorage.getItem("user_logged_in");
+            if (isLogged === "true") {
+                window.location.href = "booking.html";
+            } else {
+                document.getElementById('loginModalOverlay').classList.add('show');
+            }
+        }
+
+        function closeLoginModal() { document.getElementById('loginModalOverlay').classList.remove('show'); }
+        function redirectToLogin() { window.location.href = "login.html"; }
+        
+        function toggleProfileDropdown(event) { 
+            event.stopPropagation(); 
+            document.getElementById('profileDropdown').classList.toggle('show'); 
+        }
+
+        window.addEventListener('click', () => {
+            document.getElementById('profileDropdown').classList.remove('show');
+            document.querySelectorAll('.dots-dropdown').forEach(d => d.classList.remove('show'));
+        });
+
+        function toggleThreeDotsMenu(event, element) {
+            event.stopPropagation();
+            const targetMenu = element.nextElementSibling;
+            document.querySelectorAll('.dots-dropdown').forEach(d => { if(d !== targetMenu) d.classList.remove('show'); });
+            targetMenu.classList.toggle('show');
+        }
+        
+        function toggleFaq(element) { element.parentElement.classList.toggle('active'); }
+        function toggleClientOrder(element) { element.parentElement.classList.toggle('active'); }
+        function openClientPreview(src) { document.getElementById('previewImg').src = src; document.getElementById('globalImgModal').style.display = 'flex'; }
+        function viewPaymentStatusAlert(gatewayMsg, orderIdTxt, txIdNum) { alert(`💳 PAYMENT STATUS SUMMARY\n\n📌 Order Ref: #${orderIdTxt}\n💰 Status: ${gatewayMsg.replace('🟢 ', '').replace('⚠️ ', '')}\n🔑 ${txIdNum}`); }
+        function openRateSheet() { document.getElementById('rateSheetOverlay').style.display = 'block'; setTimeout(() => { document.getElementById('rateSheetOverlay').classList.add('open'); }, 10); }
+        function closeRateSheet() { document.getElementById('rateSheetOverlay').classList.remove('open'); setTimeout(() => { document.getElementById('rateSheetOverlay').style.display = 'none'; }, 300); }
+        function saveTargetId(id) { localStorage.setItem('modifying_id', id); }
+
+        function showNotification(message, icon = "fa-info-circle") {
+            const toast = document.getElementById('toastNotification');
+            const msgSpan = document.getElementById('toastMessage');
+            toast.querySelector('i').className = `fas ${icon}`;
+            msgSpan.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3500);
+        }
+
+        function triggerLogout() {
+            localStorage.removeItem("user_phone");
+            localStorage.removeItem("user_logged_in");
+            showNotification("Logged out successfully", "fa-check-circle");
+            setTimeout(() => { window.location.href = "index.html"; }, 800);
+        }
+
+        function listenToRates() {
+            db.ref('rates_list').on('value', (snapshot) => {
+                const container = document.getElementById('rateSheetContent');
+                let htmlContent = "";
+                if(snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        const item = child.val();
+                        htmlContent += `
+                            <div class="rate-card">
+                                <div class="rate-info-left"><div class="rate-icon-box"><i class="fas ${item.icon || 'fa-box-open'}"></i></div>
+                                <div><span class="rate-item-name">${item.name || 'Parcel'}</span><small class="rate-item-desc">${item.desc || 'Standard parcel charges'}</small></div></div>
+                                <div class="rate-price-badge">₹${item.rate || '0'}</div>
+                            </div>`;
+                    });
+                    container.innerHTML = htmlContent;
+                } else {
+                    const sampleRates = [
+                        { name: "Small Box", desc: "Up to 1KG weights layout", rate: "199", icon: "fa-box" },
+                        { name: "Medium Sack / Clothes Sack", desc: "Weight 1KG - 3KG stock parcel", rate: "249", icon: "fa-sack-large" },
+                        { name: "For Medical Pickup Home delivery Included", desc: "medical reports and medicines", rate: "249", icon: "fa-boxes" }
+                    ];
+                    sampleRates.forEach(item => {
+                        htmlContent += `
+                            <div class="rate-card">
+                                <div class="rate-info-left"><div class="rate-icon-box"><i class="fas ${item.icon}"></i></div>
+                                <div><span class="rate-item-name">${item.name}</span><small class="rate-item-desc">${item.desc}</small></div></div>
+                                <div class="rate-price-badge">₹${item.rate}</div>
+                            </div>`;
+                    });
+                    container.innerHTML = htmlContent;
+                }
+            });
+        }
+
+        function loadOrdersByPhone(loggedInUserPhone) {
+            const cleanPhone = loggedInUserPhone.trim();
+            const standardPhone = cleanPhone.replace("+91", "");
+
+            db.ref('parcel_bookings').on('value', (bookingSnapshot) => {
+                db.ref('modification_requests').once('value').then((requestSnapshot) => {
+                    
+                    const bookingsData = bookingSnapshot.val();
+                    const requestsData = requestSnapshot.val() || {};
+                    
+                    const activeContainer = document.getElementById('activeList');
+                    const recentContainer = document.getElementById('recentList');
+                    
+                    let activeHTML = ""; let recentHTML = "";
+                    let hasActive = false; let hasRecent = false;
+
+                    if (bookingsData) {
+                        const orders = Object.keys(bookingsData).map(key => ({ id: key, ...bookingsData[key] })).reverse();
+                        
+                        orders.forEach(o => {
+                            const matchesLoginPhone = o.login_phone && (String(o.login_phone).includes(standardPhone) || String(o.login_phone) === cleanPhone);
+                            const matchesSenderPhone = o.sender_phone && (String(o.sender_phone).includes(standardPhone) || String(o.sender_phone) === cleanPhone);
+
+                            if (!matchesLoginPhone && !matchesSenderPhone) return;
+
+                            let dotClass = "status-pending";
+                            let cancelStrikeStyle = "";
+                            let currentStatus = (o.status || "Pending").trim().toLowerCase();
+
+                            if (currentStatus === "in transit" || currentStatus === "out for delivery" || currentStatus === "reached at hub") {
+                                dotClass = "status-transit";
+                            } else if (currentStatus === "delivered") {
+                                dotClass = "status-delivered";
+                            } else if (currentStatus === "cancelled") {
+                                dotClass = "status-cancelled";
+                                cancelStrikeStyle = "text-decoration: line-through; opacity: 0.6;";
+                            }
+
+                            let primaryImgSrc = 'https://via.placeholder.com/100';
+                            if (o.parcel_images && Array.isArray(o.parcel_images) && o.parcel_images.length > 0) {
+                                primaryImgSrc = o.parcel_images[0];
+                            } else if (o.parcel_image) {
+                                primaryImgSrc = o.parcel_image;
+                            }
+
+                            let imagesHTML = "";
+                            if(o.parcel_images && Array.isArray(o.parcel_images)) {
+                                imagesHTML = o.parcel_images.map(img => `<img src="${img}" class="client-thumb" loading="lazy" onclick="event.stopPropagation(); openClientPreview('${img}')">`).join('');
+                            } else {
+                                imagesHTML = `<img src="${primaryImgSrc}" class="client-thumb" loading="lazy" onclick="event.stopPropagation(); openClientPreview('${primaryImgSrc}')">`;
+                            }
+
+                            let payStatusText = o.payment_status || "SUCCESS"; 
+                            let txnId = o.transaction_id || "GENERATING...";
+                            let plainTxnString = `Txn ID: ${txnId}`;
+                            let payStatusMessage = `🟢 PAID VIA RAZORPAY`;
+
+                            if(payStatusText === "REFUNDED" || currentStatus === "cancelled") {
+                                payStatusMessage = `⚠️ REFUNDED BACK TO SOURCE`;
+                                plainTxnString = `Txn ID: ${txnId} [Amt will sync back in 5-7 working days]`;
+                            }
+
+                            let changeAddressHTML = "";
+                            if (currentStatus !== "reached at hub" && currentStatus !== "out for delivery" && currentStatus !== "delivered" && currentStatus !== "cancelled") {
+                                changeAddressHTML = `<a href="modify.html" onclick="saveTargetId('${o.id}')"><i class="fas fa-edit"></i> Change Delivery Address</a>`;
+                            }
+
+                            let dropdownMenuBlockHTML = `
+                                <div class="action-menu-container">
+                                    <button class="dots-btn" onclick="toggleThreeDotsMenu(event, this)">⋮</button>
+                                    <div class="dots-dropdown">
+                                        ${changeAddressHTML}
+                                        <button onclick="viewPaymentStatusAlert('${payStatusMessage}', '${o.id.substring(1,7).toUpperCase()}', '${plainTxnString}')"><i class="fas fa-credit-card"></i> View Payment Status</button>
+                                    </div>
+                                </div>`;
+
+                            let pickupBlock = ""; let dropBlock = "";
+
+                            if (o.route === 'STP ➔ LKO') {
+                                pickupBlock = `<p><b>📦 Pickup point (Sitapur):</b> ${o.pickup_location || "N/A"}</p>`;
+                                dropBlock = `<p><b>📍 Station Drop-off (Lucknow):</b> ${o.drop_point || 'N/A'}</p>`;
+                            } else {
+                                pickupBlock = `<p><b>📦 Pickup point (Lucknow):</b> ${o.pickup_location || "N/A"}</p>`;
+                                if (o.delivery_type === 'HOME') {
+                                    dropBlock = `<p><b>🏠 Home Delivery (Sitapur):</b> ${o.delivery_address || 'N/A'}</p>`;
+                                } else {
+                                    dropBlock = `<p><b>📍 Station Drop-off (Sitapur):</b> ${o.drop_point || 'N/A'}</p>`;
+                                }
+                            }
+
+                            let approvalNoticeHTML = "";
+                            let modificationData = requestsData[o.id];
+
+                            if (modificationData && currentStatus !== "cancelled") {
+                                approvalNoticeHTML = `<div class="approval-notice"><i class="fas fa-exclamation-circle fa-spin"></i> Status: Waiting for Staff Approval</div>`;
+                                let modDropPoint = modificationData.drop_point || "N/A";
+                                let modDeliveryAddress = modificationData.delivery_address || "N/A";
+                                let modType = modificationData.delivery_type || "STATION";
+
+                                if (o.route === 'STP ➔ LKO') {
+                                    dropBlock = `<p style="opacity: 0.65; color: #e65100;"><b>📍 Station Drop-off (Lucknow New):</b> ${modDropPoint} <i class="fas fa-clock"></i></p>`;
+                                } else {
+                                    if (modType === 'HOME') {
+                                        dropBlock = `<p style="opacity: 0.65; color: #e65100;"><b>🏠 Home Delivery (Sitapur New):</b> ${modDeliveryAddress} <i class="fas fa-clock"></i></p>`;
+                                    } else {
+                                        dropBlock = `<p style="opacity: 0.65; color: #e65100;"><b>📍 Station Drop-off (Sitapur New):</b> ${modDropPoint} <i class="fas fa-clock"></i></p>`;
+                                    }
+                                }
+                            }
+
+                            const statusColorStyle = currentStatus === 'cancelled' ? 'color: var(--danger); font-weight: 800;' : 'color: var(--primary); font-weight: 800;';
+                            const statusIconClass = currentStatus === 'cancelled' ? 'fa-times-circle' : 'fa-history';
+
+                            const cardHTML = `
+                                <div class="order-container" style="${cancelStrikeStyle}">
+                                    <div class="order-summary-bar" onclick="toggleClientOrder(this)">
+                                        <div class="grid-center"><span class="status-dot ${dotClass}"></span></div>
+                                        <div class="grid-center"><img src="${primaryImgSrc}" class="bar-parcel-preview" loading="lazy" onclick="event.stopPropagation(); openClientPreview('${primaryImgSrc}')"></div>
+                                        <div style="padding-left: 8px;"><span class="route-badge">${o.route}</span></div>
+                                        <div class="fare-txt grid-right">₹${o.total_fare}</div>
+                                        <div class="grid-center"><button class="arrow-btn"><i class="fas fa-chevron-down"></i></button></div>
+                                    </div>
+                                    <div class="order-details-panel">
+                                        ${approvalNoticeHTML}
+                                        <div class="details-header-flex">
+                                            <div><span class="info-label">Order Reference System</span><div style="font-weight:800; font-size:11px; color:var(--text-muted);">ID: #${o.id.substring(1,7).toUpperCase()}</div></div>
+                                            ${dropdownMenuBlockHTML}
+                                        </div>
+                                        <span class="info-label">Current Stage Status</span><div style="font-size:12px; ${statusColorStyle} text-transform:uppercase; margin-bottom:8px;"><i class="fas ${statusIconClass}"></i> ${o.status || 'Pending'}</div>
+                                        <span class="info-label">All Uploaded Parcel Photos</span><div class="client-photo-grid">${imagesHTML}</div>
+                                        <div style="font-size:11px; color:#475569; background:#fff; padding:12px; border-radius:10px; border:1px solid #e2e8f0; margin-top:10px; line-height: 1.6;">
+                                            <p><b>⏰ Dispatch Slot:</b> ${o.time_slot || '09:00 AM'}</p><hr style="border: 0; border-top: 1px dashed #e2e8f0; margin: 6px 0;">
+                                            <p style="color:#2e7d32;"><b>📥 Order Time:</b> ${formatTimestamp(o.timestamp || 'N/A')}</p><hr style="border: 0; border-top: 1px dashed #e2e8f0; margin: 6px 0;">
+                                            <p style="color:#7b1fa2;"><b>📤 Delivered Time:</b> ${formatTimestamp(o.delivered_time || 'Pending Delivery')}</p><hr style="border: 0; border-top: 1px dashed #e2e8f0; margin: 6px 0;">
+                                            ${pickupBlock}<hr style="border: 0; border-top: 1px dashed #e2e8f0; margin: 6px 0;">
+                                            ${dropBlock}
+                                        </div>
+                                    </div>
+                                </div>`;
+
+                           if (currentStatus === "delivered" || currentStatus === "cancelled") { recentHTML += cardHTML; hasRecent = true; } 
+                            else { activeHTML += cardHTML; hasActive = true; }
+                        });
+                    }
+                    activeContainer.innerHTML = hasActive ? activeHTML : '<div id="noData">No active shipments right now.</div>';
+                    recentContainer.innerHTML = hasRecent ? recentHTML : '<div id="noRecent">No recent deliveries found.</div>';
+                });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Portal | Sitapur Express</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root { --primary: #0c1c3a; --bg: #f4f7f6; --white: #ffffff; --red: #e74c3c; --green: #2ecc71; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg); padding: 12px; color: var(--primary); }
+        
+        .header { text-align: center; margin: 15px 0 25px 0; }
+        .header h1 { font-size: 22px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+        .header p { font-size: 11px; font-weight: 600; color: #777; text-transform: uppercase; }
+
+        /* AUTH SCREEN VISUALS */
+        .auth-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+        .auth-card { background: var(--white); width: 100%; max-width: 350px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(12,28,58,0.1); text-align: center; border-bottom: 5px solid var(--primary); }
+        .auth-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; color: var(--primary); }
+        .auth-card p { font-size: 11px; color: #666; font-weight: 600; margin-bottom: 20px; }
+        .auth-card input { width:100%; padding: 12px; border: 2px solid #eaeaea; border-radius: 12px; font-weight:700; font-size:14px; text-align:center; outline:none; margin-bottom:15px; background:#f9f9f9; }
+        .auth-card input:focus { border-color: var(--primary); }
+
+        .order-card { background: var(--white); border-radius: 20px; padding: 16px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eaeaea; }
+        .order-id { font-size: 11px; font-weight: 800; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+        
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+        .info-label { color: #666; font-size: 12px; }
+        .info-val { font-weight: 700; text-align: right; }
+        
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #fff; }
+        .bg-pending { background: #f39c12; }
+        .bg-delivered { background: var(--green); }
+
+        .action-container { margin-top: 12px; padding-top: 12px; border-top: 1.5px dashed #f0f0f0; }
+        
+        .btn { width: 100%; border: none; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 11px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+        .btn-req { background: var(--primary); color: #fff; }
+        .btn-verify { background: var(--green); color: #fff; }
+        .btn:disabled { background: #ccc; color: #666; cursor: not-allowed; }
+
+        .otp-input-block { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+        .otp-field { flex: 1; padding: 12px; border: 2px solid var(--primary); border-radius: 12px; font-size: 14px; font-weight: 800; text-align: center; outline: none; height: 42px; }
+        
+        .timer-text { font-size: 10px; color: var(--red); font-weight: 800; text-align: center; margin-top: 5px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div id="authGate" class="auth-screen">
+        <div class="auth-card">
+            <h3>Delivery Agent Gate</h3>
+            <p>Sitapur Express Security Protocol</p>
+            <input type="text" id="agentPassInput" placeholder="ENTER AGENT PASSWORD">
+            <button class="btn btn-req" onclick="attemptAgentLogin()">VERIFY & SAVE LOGIN</button>
+        </div>
+    </div>
+
+    <div id="portalDashboard">
+        <div class="header">
+            <h1>Sitapur Express</h1>
+            <p>Delivery Agent Matrix</p>
+        </div>
+        <div id="ordersContainer"></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC2r-fGV1DycoIdxlVWad46ovdI8GWN3n4",
+            authDomain: "sitapur-express.firebaseapp.com",
+            databaseURL: "https://sitapur-express-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sitapur-express"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const TELEGRAM_BOT_TOKEN = "8971473592:AAGhhG2LP5cuqe06I3_vN1_X_RGYspXj6UU";
+        const TELEGRAM_CHAT_ID = "8416166638";
+
+        // DYNAMIC DEVICE SECURITY SYNC ENGINE
+        function initSecuritySystem() {
+            db.ref('admin_settings/delivery_password').on('value', (snapshot) => {
+                const dbPassword = snapshot.val();
+                const savedPassword = localStorage.getItem('delivery_saved_pass');
+
+                // Generate or Fetch Local Hardware Fingerprint Session ID
+                let currentSessionId = localStorage.getItem('delivery_session_token');
+                if(!currentSessionId) {
+                    currentSessionId = 'DEV-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+                    localStorage.setItem('delivery_session_token', currentSessionId);
+                }
+
+                if (!savedPassword || savedPassword !== dbPassword) {
+                    // Password change hui h ya first time user h -> Force Login Screen
+                    triggerLogoutState();
+                } else {
+                    // Password matched, ab unique server session key sync check karenge
+                    db.ref('admin_settings/active_delivery_session').once('value', (sessionSnap) => {
+                        const activeServerSession = sessionSnap.val();
+                        
+                        if (!activeServerSession) {
+                            // Agar server par koi session nahi h, is token ko register karo primary device ke taur par
+                            db.ref('admin_settings/active_delivery_session').set(currentSessionId);
+                            executeLoginState();
+                        } else if (activeServerSession !== currentSessionId) {
+                            // Bhai, ye token mismatch ho gaya Matlab doosre device me login active hua h!
+                            alert("⚠️ SECURITY LOGOUT: Yeh account kisi doosre phone me login ho chuka hai!");
+                            triggerLogoutState();
+                        } else {
+                            // Sab perfect h, usi phone me running state h
+                            executeLoginState();
+                        }
+                    });
+                }
+            });
+        }
+
+        function attemptAgentLogin() {
+            const typedPassword = document.getElementById('agentPassInput').value.trim();
+            if(!typedPassword) return alert("Pehle password fill kariye!");
+
+            db.ref('admin_settings/delivery_password').once('value', (snapshot) => {
+                const dbPassword = snapshot.val();
+
+                if (typedPassword === dbPassword) {
+                    const currentSessionId = localStorage.getItem('delivery_session_token');
+                    
+                    // Local memory me password update karo permanent ke liye
+                    localStorage.setItem('delivery_saved_pass', typedPassword);
+                    // Server par is phone ka session ID write kar do (Purana device auto logout ho jayega)
+                    db.ref('admin_settings/active_delivery_session').set(currentSessionId).then(() => {
+                        document.getElementById('agentPassInput').value = "";
+                        executeLoginState();
+                    });
+                } else {
+                    alert("❌ GALAT PASSWORD! Admin se sahi key maangiye.");
+                }
+            });
+        }
+
+        function triggerLogoutState() {
+            localStorage.removeItem('delivery_saved_pass');
+            document.getElementById('authGate').style.display = "flex";
+            document.getElementById('portalDashboard').style.display = "none";
+        }
+
+        function executeLoginState() {
+            document.getElementById('authGate').style.display = "none";
+            document.getElementById('portalDashboard').style.display = "block";
+        }
+
+        // INIT SECURITY ROUTINE ON BOOT
+        initSecuritySystem();
+
+        // LIVE QUEUE DATABASE SYNCHRONIZATION
+        db.ref('parcel_bookings').on('value', (snapshot) => {
+            const container = document.getElementById('ordersContainer');
+            container.innerHTML = "";
+            const data = snapshot.val();
+
+            if (!data) {
+                container.innerHTML = `<p style="text-align:center; font-weight:800; color:#888; margin-top:50px;">NO ORDERS AVAILABLE</p>`;
+                return;
+            }
+
+            Object.keys(data).reverse().forEach(id => {
+                const order = data[id];
+                const isDelivered = order.status === "Delivered";
+                
+                let actionHtml = "";
+                if (!isDelivered) {
+                    if (order.otp_requested === true) {
+                        actionHtml = `
+                            <div class="otp-input-block">
+                                <input type="number" class="otp-field" id="input_otp_${id}" placeholder="OTP" oninput="if(this.value.length > 4) this.value = this.value.slice(0,4);">
+                                <button class="btn btn-verify" style="width:auto; padding:12px 20px;" onclick="verifyOtpCode('${id}', '${order.delivery_otp}')">VERIFY</button>
+                            </div>
+                        `;
+                    } else {
+                        actionHtml = `
+                            <button class="btn btn-req" id="btn_req_${id}" onclick="triggerOtpWorkflow('${id}', '${order.receiver_name}', '${order.drop_point}', '${order.receiver_phone}')">REQUEST OTP</button>
+                            <div id="timer_${id}" class="timer-text" style="display:none;"></div>
+                        `;
+                    }
+                } else {
+                    actionHtml = `<div style="color:var(--green); font-weight:800; text-align:center; font-size:12px; text-transform:uppercase;">Delivered! ✅</div>`;
+                }
+
+                container.innerHTML += `
+                    <div class="order-card">
+                        <div class="order-id">ID: #${id.substring(1,7).toUpperCase()}</div>
+                        <div class="info-row"><span class="info-label">Receiver:</span><span class="info-val">${order.receiver_name || "N/A"}</span></div>
+                        <div class="info-row"><span class="info-label">Phone:</span><span class="info-val">${order.receiver_phone || "N/A"}</span></div>
+                        <div class="info-row"><span class="info-label">Drop Point:</span><span class="info-val">${order.drop_point || "N/A"}</span></div>
+                        <div class="info-row" style="margin-top:8px;"><span class="info-label">Status:</span><span class="badge ${isDelivered ? 'bg-delivered' : 'bg-pending'}">${order.status || 'Pending'}</span></div>
+                        <div class="action-container">${actionHtml}</div>
+                    </div>
+                `;
+            });
+        });
+
+        function triggerOtpWorkflow(orderId, receiverName, dropPoint, receiverPhone) {
+            const reqBtn = document.getElementById(`btn_req_${orderId}`);
+            const timerDiv = document.getElementById(`timer_${orderId}`);
+            reqBtn.disabled = true;
+            reqBtn.innerText = "SENDING REQ...";
+
+            const cleanOrderId = orderId.substring(1,7).toUpperCase();
+            const textMessage = `🚨 *Delivery OTP Request* \n\n*Order ID:* \`#${cleanOrderId}\`\n*Receiver:* ${receiverName}\n*Phone:* ${receiverPhone}\n*Drop:* ${dropPoint}\n\n👉 Admin panel se click karke OTP SMS bheijiye!`;
+
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: textMessage, parse_mode: "Markdown" })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    timerDiv.style.display = "block";
+                    timerDiv.innerText = "REQ SENT! Updating...";
+                    setTimeout(() => {
+                        db.ref(`parcel_bookings/${orderId}`).update({ otp_requested: true });
+                    }, 1000);
+                } else {
+                    alert("Telegram API Error: " + data.description);
+                    reqBtn.disabled = false;
+                    reqBtn.innerText = "REQUEST OTP";
+                }
+            });
+        }
+
+        function verifyOtpCode(orderId, realOtp) {
+            const enteredOtp = document.getElementById(`input_otp_${orderId}`).value;
+            if (enteredOtp == realOtp) {
+                db.ref(`parcel_bookings/${orderId}`).update({ 
+                    status: "Delivered", 
+                    otp_unlocked: true,
+                    delivered_time: new Date().getTime()
+                }).then(() => {
+                    alert("🟢 Order delivered successfully!");
+                });
+            } else {
+                alert("❌ INVALID CODE: Galat OTP dala hai!");
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO OPTIMIZATION FOR LKOSTPCOURIERS.COM -->
+    <title>Staff Control Panel | Sitapur Express | lkostpcouriers.com</title>
+    <meta name="description" content="Secure staff administrative control panel for Sitapur Express logistics. Manage and track courier operations on lkostpcouriers.com.">
+    <link rel="canonical" href="https://lkostpcouriers.com/">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root { --primary: #0c1c3a; --gold: #ffc107; --purple: #7b1fa2; --success: #2e7d32; --danger: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #f0f2f5; padding: 15px; padding-bottom: 50px; } 
+        
+        /* 🔒 COOL DECORATIVE CYBER GLOW AUTH PORTAL */
+        #cyberAuthGate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #1a2a4a 0%, #050d1e 100%); z-index: 99999; display: flex; justify-content: center; align-items: center; padding: 20px; transition: 0.4s ease; }
+        .cyber-panel { background: rgba(12, 28, 58, 0.45); border: 2px solid rgba(255, 193, 7, 0.3); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); width: 100%; max-width: 380px; padding: 35px 25px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 193, 7, 0.05); text-align: center; position: relative; overflow: hidden; animation: panelGlow 4s infinite alternate; }
+        @keyframes panelGlow { 0% { border-color: rgba(255,193,7,0.2); box-shadow: 0 20px 40px rgba(0,0,0,0.5); } 100% { border-color: rgba(255,193,7,0.6); box-shadow: 0 20px 50px rgba(255,193,7,0.1); } }
+        .cyber-icon { width: 70px; height: 70px; background: linear-gradient(135deg, var(--gold), #ffa000); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 28px; box-shadow: 0 0 25px rgba(255,193,7,0.4); animation: pulseIcon 2s infinite; }
+        @keyframes pulseIcon { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .cyber-panel h2 { color: #ffffff; font-weight: 800; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+        .cyber-panel p { color: #8fa0c0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 25px; }
+        .cyber-input-wrapper { position: relative; margin-bottom: 20px; }
+        .cyber-input-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 16px; }
+        .cyber-input { width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.1); background: rgba(5,13,30,0.6); font-weight: 800; font-size: 15px; text-align: left; letter-spacing: 2px; outline: none; color: #fff; transition: 0.3s; }
+        .cyber-input:focus { border-color: var(--gold); box-shadow: 0 0 15px rgba(255,193,7,0.2); background: rgba(5,13,30,0.8); }
+        .cyber-btn { width: 100%; border: none; padding: 15px; border-radius: 14px; font-weight: 800; font-size: 13px; text-transform: uppercase; cursor: pointer; color: var(--primary); background: linear-gradient(135deg, var(--gold), #ffb300); box-shadow: 0 5px 15px rgba(255,193,7,0.3); transition: 0.3s; letter-spacing: 0.5px; }
+        .cyber-btn:active { transform: scale(0.98); box-shadow: 0 2px 5px rgba(255,193,7,0.2); }
+
+        /* MAIN PORTAL COMPONENT LOOKS */
+        #mainAdminWrapper { display: none; }
+        .head { background: var(--primary); color: white; padding: 25px; border-radius: 20px; text-align: center; border-bottom: 5px solid var(--gold); margin-bottom: 20px; position: relative; }
+        
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .s-card { background: white; padding: 18px; border-radius: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .s-card b { font-size: 20px; color: var(--primary); display: block; }
+        .s-card small { font-size: 10px; color: #888; font-weight: 800; text-transform: uppercase; }
+
+        /* LIVE HARDWARE DEVICE CONTAINER CARD */
+        .device-tracking-card { background: #e0f2fe; border: 1.5px solid #bae6fd; padding: 15px; border-radius: 18px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(14,165,233,0.06); }
+        .device-header-row { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 12px; color: #0369a1; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px dashed #93c5fd; padding-bottom: 6px; }
+        .device-holder-list { display: flex; flex-direction: column; gap: 5px; }
+        .device-badge-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #0f172a; border-left: 4px solid #0284c7; }
+        .device-badge-row span.pulse-dot { width: 8px; height: 8px; background: #0ea5e9; border-radius: 50%; display: inline-block; animation: pulseBlue 1.2s infinite; }
+        @keyframes pulseBlue { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
+
+        .btn-mini-reset { background: #fff0f0; color: #ff4757; border: 1px dashed #ff4757; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; cursor: pointer; margin-top: 6px; text-transform: uppercase; transition: 0.2s; }
+        .btn-mini-reset:active { transform: scale(0.95); background: #ffe4e4; }
+
+        .section-header { margin: 25px 0 15px; font-weight: 800; color: var(--primary); font-size: 13px; text-transform: uppercase; border-left: 5px solid var(--gold); padding-left: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+        .admin-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-left: 5px solid var(--gold); position: relative; }
+        
+        .mod-request-item { background: #fff3e0; border: 2px solid #ffb74d; border-left: 8px solid #f57c00; padding: 16px; border-radius: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(245,124,0,0.08); }
+        .mod-comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+        .mod-box-old { background: #fafafa; padding: 10px; border-radius: 10px; border: 1px dashed #ccc; font-size: 11px; color: #666; line-height: 1.5; }
+        .mod-box-new { background: #fff; padding: 10px; border-radius: 10px; border: 1px solid #ffb74d; font-size: 11px; color: #b91c1c; font-weight: 600; line-height: 1.5; }
+        .mod-action-row { display: flex; gap: 10px; margin-top: 12px; }
+        .btn-mod-approve { flex: 1; background: #2e7d32; color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 11px; cursor: pointer; text-transform: uppercase; }
+        .btn-mod-reject { flex: 1; background: #c62828; color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 11px; cursor: pointer; text-transform: uppercase; }
+
+        .admin-photo-grid { display: flex; gap: 8px; margin: 10px 0; overflow-x: auto; padding-bottom: 5px; }
+        .admin-thumb { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; cursor: pointer; border: 1px solid #ddd; }
+
+        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid #eee; background: #f8f9fa; font-weight: 700; font-size: 12px; margin-bottom: 10px; outline: none; color: var(--primary); }
+        .btn-update { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 5px; text-transform: uppercase; }
+        .btn-del { background: #fff0f0; color: #ff4757; border: 1px solid #ff4757; padding: 5px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer; }
+        
+        .add-card { background: #fff; padding: 18px; border-radius: 20px; margin-bottom: 20px; border: 1px dashed #ccc; }
+        .addr-label { color: #888; font-weight: 800; font-size: 9px; text-transform: uppercase; display: block; margin-bottom: 5px; }
+        
+        .modal { display: none; position: fixed; z-index: 3000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
+        .modal-img { max-width: 90%; max-height: 80%; border-radius: 10px; }
+        .whatsapp-settings { background: #e8f5e9; border: 1px solid #c8e6c9; }
+        .delivery-settings { background: #f3e5f5; border: 1px solid #e1bee7; }
+        .btn-wipe { width: 100%; background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; padding: 15px; border-radius: 15px; margin-top: 30px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+
+        .address-box { margin-top: 10px; padding: 12px; background: #fffbeb; border-radius: 10px; border: 1px solid #fef3c7; font-size: 11px; color: #1e293b; line-height: 1.6; }
+        .address-box i { color: #d97706; margin-right: 5px; }
+        .data-badge { background: #f1f5f9; color: var(--primary); padding: 2px 6px; border-radius: 5px; font-weight: 800; font-size: 10px; display: inline-block; margin-top: 4px; }
+
+        .pay-box { margin-top: 10px; padding: 12px; border-radius: 12px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+        .pay-success { background: #e8f5e9; border: 1px solid #a5d6a7; color: #1b5e20; }
+        .pay-pending { background: #fff3e0; border: 1px solid #ffe0b2; color: #e65100; }
+        .pay-refunded { background: #eceff1; border: 1px solid #cfd8dc; color: #555555; opacity: 0.85; }
+        
+        .btn-refund { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
+        .btn-refund:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+
+        .otp-box-layout { background: #f0fdf4; border: 1.5px dashed #4ade80; border-radius: 12px; padding: 12px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-weight: 700; }
+        .btn-otp-trigger { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 9px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        
+        .req-blink { color: #ea580c !important; font-weight: 800; animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+    <div id="cyberAuthGate">
+        <div class="cyber-panel">
+            <div class="cyber-icon"><i class="fas fa-user-shield"></i></div>
+            <h2>Admin Terminal</h2>
+            <p>Sitapur Express Security Subsystem</p>
+            <div class="cyber-input-wrapper">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="cyberKeyInput" class="cyber-input" placeholder="ENTER ACCESS PIN">
+            </div>
+            <button class="cyber-btn" onclick="validateCyberGate()">AUTHORIZE DASHBOARD</button>
+        </div>
+    </div>
+
+    <div id="mainAdminWrapper">
+        <div id="imgModal" class="modal" onclick="this.style.display='none'">
+            <img class="modal-img" id="fullImg">
+        </div>
+
+        <div class="head">
+            <h2>Last 7 Days</h2>
+            <p style="font-size: 11px; color: var(--gold);">Sitapur Express Management Dashboard</p>
+            <span onclick="triggerAdminSessionLogout()" style="position:absolute; right:15px; top:15px; color:#fff; background:rgba(255,255,255,0.15); padding:6px 10px; border-radius:8px; font-size:10px; font-weight:800; cursor:pointer;"><i class="fas fa-sign-out-alt"></i> EXIT</span>
+        </div>
+
+        <div class="device-tracking-card">
+            <div class="device-header-row">
+                <span><i class="fas fa-mobile-alt"></i> Active Control Terminals</span>
+                <span id="deviceCountBadge" style="background:var(--primary); color:#fff; padding:2px 8px; border-radius:10px; font-size:10px;">0 Active</span>
+            </div>
+            <div id="liveConnectedDevicePool" class="device-holder-list">
+                </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="s-card"><b id="tOrders">0</b><small>Total Orders</small></div>
+            <div class="s-card">
+                <b id="tCash">₹0</b>
+                <small>Total Collected</small>
+                <button class="btn-mini-reset" onclick="resetCashCounter()"><i class="fas fa-sync-alt"></i> Reset Cash</button>
+            </div>
+        </div>
+
+        <div class="section-header"><i class="fab fa-whatsapp"></i> Helpline Settings</div>
+        <div class="add-card whatsapp-settings">
+            <label class="addr-label">Admin WhatsApp Number (Include 91)</label>
+            <input type="number" id="adminWhatsapp" placeholder="91XXXXXXXXXX">
+            <button class="btn-update" style="background:#2e7d32;" onclick="saveHelpline()">SAVE WHATSAPP NUMBER</button>
+        </div>
+
+        <div class="section-header"><i class="fas fa-user-shield"></i> Delivery App Security</div>
+        <div class="add-card delivery-settings">
+            <label class="addr-label">Delivery Agent Master Password</label>
+            <input type="text" id="deliveryAppPass" placeholder="Enter password for delivery.html">
+            <button class="btn-update" style="background:var(--purple);" onclick="saveDeliveryPassword()">UPDATE AGENT PASSWORD</button>
+        </div>
+
+        <div id="modRequestsWrapper" style="display: none;">
+            <div class="section-header" style="border-left-color: #f57c00; color: #e65100;">
+                <span><i class="fas fa-exclamation-triangle fa-spin"></i> Pending Modification Requests</span>
+            </div>
+            <div id="modRequestsList"></div>
+        </div>
+
+        <div class="section-header"><span><i class="fas fa-box"></i> Live Order Queue</span></div>
+        <div id="masterList"></div>
+
+        <div class="section-header"><i class="fas fa-tags"></i> Dynamic Parcel Types</div>
+        <div class="add-card">
+            <input type="text" id="newItemName" placeholder="Item Name (e.g. Box 0-1kg)">
+            <input type="number" id="newItemPrice" placeholder="Base Price (₹)">
+            <button class="btn-update" onclick="addItem()">ADD PARCEL TYPE</button>
+            <div id="itemListAdmin" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="section-header"><i class="fas fa-clock"></i> Train Route Timings</div>
+        <div class="add-card">
+            <input type="text" id="newBatchTime" placeholder="Dispatch Time (e.g. 09:00 AM, 04:30 PM)">
+            <select id="batchRoute">
+                <option value="STP ➔ LKO">STP ➔ LKO (Sitapur Cargo Dispatch)</option>
+                <option value="LKO ➔ STP">LKO ➔ STP (Lucknow Cargo Dispatch)</option>
+            </select>
+            <button class="btn-update" onclick="addTimingSlot()">ADD TIMING SLOT</button>
+            <div id="timingListAdmin" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="section-header"><i class="fas fa-map-marker-alt"></i> Stations & Delivery Drops</div>
+        <div class="add-card">
+            <input type="text" id="areaName" placeholder="Station / Location Name">
+            <select id="areaRoute">
+                <option value="STP ➔ LKO">STP ➔ LKO (Lucknow Drop Points)</option>
+                <option value="LKO ➔ STP">LKO ➔ STP (Sitapur Drop Points)</option>
+            </select>
+            <button class="btn-update" onclick="addLocation()">ADD STATION DROP</button>
+            <div id="locationListAdmin" style="margin-top:10px;"></div>
+        </div>
+
+      
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC2r-fGV1DycoIdxlVWad46ovdI8GWN3n4",
+            authDomain: "sitapur-express.firebaseapp.com",
+            databaseURL: "https://sitapur-express-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sitapur-express"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        const MASTER_ADMIN_PIN = "HeLLo12@@1%@@&@&";
+        let clientHardwareToken = localStorage.getItem('admin_device_hardware_token');
+        
+        // DEVICE HARDWARE FINGERPRINT & MODEL RESOLVER LOGIC
+        if(!clientHardwareToken) {
+            clientHardwareToken = 'ADM-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+            localStorage.setItem('admin_device_hardware_token', clientHardwareToken);
+        }
+
+        function resolveDeviceModelString() {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) {
+                const matches = ua.match(/android\s([0-9\.]+);\s([^;]+)\sBuild/i);
+                if (matches && matches[2]) return matches[2].trim();
+                return "Android Device";
+            }
+            if (/iPhone|iPad/i.test(ua)) return "Apple iOS Device";
+            if (/Windows/i.test(ua)) return "Windows PC (Chrome/Edge)";
+            if (/Macintosh/i.test(ua)) return "Apple MacOS Desktop";
+            return "Web Terminal Console";
+        }
+
+        // REAL-TIME HARDWARE SESSION SYNCHRONIZER
+        function bootSecuritySessionGate() {
+            const savedLocalPin = localStorage.getItem('admin_saved_session_pin');
+            if (savedLocalPin === MASTER_ADMIN_PIN) {
+                launchAuthorizedDashboard();
+            } else {
+                document.getElementById('cyberAuthGate').style.display = 'flex';
+                document.getElementById('mainAdminWrapper').style.display = 'none';
+            }
+        }
+
+        function validateCyberGate() {
+            const enteredPin = document.getElementById('cyberKeyInput').value.trim();
+            if(enteredPin === MASTER_ADMIN_PIN) {
+                localStorage.setItem('admin_saved_session_pin', enteredPin);
+                launchAuthorizedDashboard();
+            } else {
+                alert("❌ ACCESS DENIED: Invalid System Security PIN!");
+             }
+        }
+
+        function launchAuthorizedDashboard() {
+            document.getElementById('cyberAuthGate').style.display = 'none';
+            document.getElementById('mainAdminWrapper').style.display = 'block';
+            
+            // Register this device to live tracking node on database
+            const modelName = resolveDeviceModelString();
+            db.ref(`admin_active_sessions/${clientHardwareToken}`).set({
+                device_model: modelName,
+                ping_time: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            // Disconnect routine handler if admin leaves app
+            db.ref(`admin_active_sessions/${clientHardwareToken}`).onDisconnect().remove();
+
+            startLiveDashboardEngine();
+        }
+
+        function triggerAdminSessionLogout() {
+            if(confirm("Kya aap admin dashboard se log out karna chahte hain?")) {
+                db.ref(`admin_active_sessions/${clientHardwareToken}`).remove().then(() => {
+                    localStorage.removeItem('admin_saved_session_pin');
+                    location.reload();
+                });
+            }
+        }
+
+        // SYNC LIVE CONCURRENT ACTIVE LOGGED PHONES DISPLAY UI
+        function runLiveDeviceTrackerEngine() {
+            db.ref('admin_active_sessions').on('value', (snapshot) => {
+                const devicePool = snapshot.val();
+                const container = document.getElementById('liveConnectedDevicePool');
+                const badge = document.getElementById('deviceCountBadge');
+                container.innerHTML = "";
+
+                if (!devicePool) {
+                    badge.innerText = "0 Active";
+                    container.innerHTML = `<div style="font-size:10px; color:#666; font-weight:700; text-align:center; padding:5px;">No active device trace found!</div>`;
+                    return;
+                }
+
+                const keys = Object.keys(devicePool);
+                badge.innerText = `${keys.length} Phones Active`;
+
+                keys.forEach(key => {
+                    const dev = devicePool[key];
+                    const isCurrentDevice = (key === clientHardwareToken) ? " <span style='color:#0284c7; font-size:9px;'>(Yeh Phone)</span>" : "";
+                    
+                    container.innerHTML += `
+                        <div class="device-badge-row">
+                            <div><i class="fas fa-mobile-alt" style="color:#0284c7; margin-right:6px;"></i> <b>${dev.device_model}</b>${isCurrentDevice}</div>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-size:9px; color:#64748b; font-weight:800;">ONLINE</span>
+                                <span class="pulse-dot"></span>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function formatTimestamp(ts) {
+            if (!ts || ts === "N/A" || ts === "Pending Delivery") return ts;
+            if (isNaN(ts)) return ts; 
+            
+            const date = new Date(Number(ts));
+            if (isNaN(date.getTime())) return ts;
+
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            const formattedDate = date.toLocaleDateString('en-IN', options);
+
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            const formattedTime = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+
+            return `${formattedDate}, ${formattedTime}`;
+        }
+
+        function startLiveDashboardEngine() {
+            runLiveDeviceTrackerEngine();
+
+            db.ref('parcel_bookings').on('value', (bookingSnapshot) => {
+                db.ref('modification_requests').on('value', (requestSnapshot) => {
+                    db.ref('admin_settings/cash_reset_timestamp').on('value', (resetSnapshot) => {
+                        
+                        const bookingsData = bookingSnapshot.val();
+                        const requestsData = requestSnapshot.val() || {};
+                        const cashResetTime = resetSnapshot.val() || 0; 
+                        
+                        let listHTML = ""; 
+                        let totalCash = 0;
+                        let orderCount = 0;
+
+                        const modWrapper = document.getElementById('modRequestsWrapper');
+                        const modContainer = document.getElementById('modRequestsList');
+                        let modHTML = "";
+                        let hasRequests = false;
+
+                        if (bookingsData) {
+                            Object.keys(requestsData).forEach(orderId => {
+                                const modReq = requestsData[orderId];
+                                const origOrder = bookingsData[orderId];
+
+                                if (origOrder) {
+                                    hasRequests = true;
+                                    let origDrop = origOrder.drop_point || "N/A";
+                                    let origAddr = origOrder.delivery_address || "N/A";
+                                    let origPhone = origOrder.receiver_phone || "N/A";
+
+                                    let newDrop = modReq.drop_point || "N/A";
+                                    let newAddr = modReq.delivery_address || "N/A";
+                                    let newPhone = modReq.receiver_phone || "N/A";
+
+                                    modHTML += `
+                                        <div class="mod-request-item">
+                                            <div style="font-weight: 800; font-size: 12px; color: #e65100; margin-bottom: 8px;">
+                                                🚨 UPDATE REQUEST FOR ORDER ID: #${orderId.substring(1,7).toUpperCase()}
+                                            </div>
+                                            <div class="mod-comparison-grid">
+                                                <div class="mod-box-old">
+                                                    <b style="color:var(--primary);">[OLD DETAILS]</b><br>
+                                                    📞 Phone: ${origPhone}<br>
+                                                    📍 Drop: ${origDrop}<br>
+                                                    🏠 Addr: ${origAddr}
+                                                </div>
+                                                <div class="mod-box-new">
+                                                    <b style="color:#2e7d32;">[NEW REQUESTED]</b><br>
+                                                    📞 Phone: ${newPhone}<br>
+                                                    📍 Drop: ${newDrop}<br>
+                                                    🏠 Addr: ${newAddr}
+                                                </div>
+                                            </div>
+                                            <div class="mod-action-row">
+                                                <button class="btn-mod-approve" onclick="approveModification('${orderId}')">
+                                                    <i class="fas fa-check"></i> Approve Change
+                                                </button>
+                                                <button class="btn-mod-reject" onclick="rejectModification('${orderId}')">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            });
+                        }
+                        if (hasRequests) {
+                            modContainer.innerHTML = modHTML;
+                            modWrapper.style.display = "block";
+                        } else {
+                            modWrapper.style.display = "none";
+                        }
+                        if(!bookingsData) {
+                            document.getElementById('masterList').innerHTML = "<p style='text-align:center;padding:20px;color:#888;'>No Active Orders Found</p>";
+                            document.getElementById('tOrders').innerText = "0";
+                            document.getElementById('tCash').innerText = "₹0";
+                        } else {
+                            const orders = Object.keys(bookingsData).map(key => ({ id: key, ...bookingsData[key] }));
+                            orders.reverse().forEach(o => {
+                                orderCount++;
+                                
+                                let orderTimestamp = o.timestamp ? new Date(o.timestamp).getTime() : 0;
+                                if(o.payment_status === "SUCCESS" && orderTimestamp >= cashResetTime) {
+                                    totalCash += Number(o.total_fare || 0);
+                                }
+                                
+                                let photosHTML = "";
+                                if(o.parcel_images && Array.isArray(o.parcel_images)) {
+                                    photosHTML = o.parcel_images.map(img => `<img src="${img}" class="admin-thumb" onclick="openAdminModal('${img}')">`).join('');
+                                } else if(o.parcel_image) {
+                                    photosHTML = `<img src="${o.parcel_image}" class="admin-thumb" onclick="openAdminModal('${o.parcel_image}')">`;
+                                }
+
+                                let currentPayStatus = o.payment_status || "PENDING";
+                                let payClass = "pay-pending";
+                                let refundButtonAttr = "disabled";
+                                let txText = o.transaction_id || "N/A (Cod/Unpaid)";
+
+                                if(currentPayStatus === "SUCCESS") {
+                                    payClass = "pay-success";
+                                    refundButtonAttr = "";
+                                } else if(currentPayStatus === "REFUNDED") {
+                                    payClass = "pay-refunded";
+                                    refundButtonAttr = "disabled";
+                                    txText = "Refunded Back to Source";
+                                }
+
+                                let otpMarkupDisplay = "";
+                                if (o.delivery_otp) {
+                                    if (o.status === "Delivered" || o.otp_unlocked === true) {
+                                        otpMarkupDisplay = `<span style="color:#16a34a; font-size:13px; font-weight:800; letter-spacing:1px;"><i class="fas fa-lock-open"></i> ${o.delivery_otp}</span>`;
+                                    } else if (o.otp_requested === true) {
+                                        otpMarkupDisplay = `
+                                            <span class="req-blink" style="font-size:10px;"><i class="fas fa-bell animate-bounce"></i> OTP REQUESTED BY AGENT</span>
+                                            <button class="btn-otp-trigger" style="background:#ea580c;" onclick="sendDirectNativeSMS('${o.receiver_phone}', '${o.delivery_otp}')">💬 SEND OTP SMS</button>
+                                        `;
+                                    } else {
+                                        otpMarkupDisplay = `
+                                            <span style="color:#64748b; font-size:11px; font-weight:800;">[ OTP LOCKED ]</span>
+                                            <button class="btn-otp-trigger" onclick="sendDirectNativeSMS('${o.receiver_phone}', '${o.delivery_otp}')">💬 SEND OTP SMS</button>
+                                        `;
+                                    }
+                                } else {
+                                    otpMarkupDisplay = `<span style="color:#ef4444;">No Token Generated</span>`;
+                                }
+
+                                listHTML += `
+                                    <div class="admin-item" style="border-left-color: ${o.status === 'Delivered' ? '#2e7d32' : (o.status === 'Cancelled' ? '#ef4444' : '#ffc107')}">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                            <span style="font-weight:800; font-size:12px; color:var(--primary);">ORDER ID: #${o.id.substring(1,7).toUpperCase()}</span>
+                                            <span class="data-badge">${o.route}</span>
+                                            <button class="btn-del" onclick="deleteOrder('${o.id}')">×</button>
+                                        </div>
+                                        <div class="admin-photo-grid">${photosHTML}</div>
+                                        
+                                        <div style="font-size:11px; margin-bottom:10px; background:#f1f5f9; padding:10px; border-radius:10px;">
+                                            <b>👤 Sender:</b> ${o.sender_name} (${o.sender_phone})<br>
+                                            <b>📦 Receiver:</b> ${o.receiver_name} (${o.receiver_phone})<br>
+                                            <b>⏰ Dispatch Slot:</b> ${o.time_slot || 'N/A'}<br>
+                                            <b>📍 Drop Point:</b> ${o.drop_point} | <b>💰 Fare:</b> ₹${o.total_fare}<br>
+                                            <b style="color:#2e7d32;">📥 Received Time:</b> ${formatTimestamp(o.timestamp || 'N/A')}<br>
+                                            <b style="color:#7b1fa2;">📤 Delivered Time:</b> ${formatTimestamp(o.delivered_time || 'Pending Delivery')}
+                                        </div>
+
+                                        <div class="address-box">
+                                            <div><i class="fas fa-map-marker-alt"></i> <b>PICKUP ADDRESS:</b> ${o.pickup_location || 'Not Specified'}</div>
+                                            <div style="margin-top: 5px;"><i class="fas fa-home"></i> <b>DELIVERY / DROP ADDR:</b> ${o.delivery_address || 'Not Specified'}</div>
+                                        </div>
+
+                                        <div class="otp-box-layout">
+                                            <div><i class="fas fa-key"></i> DELIVERY VERIFICATION OTP:</div>
+                                            <div id="otp-wrapper-${o.id}">${otpMarkupDisplay}</div>
+                                        </div>
+
+                                        <div class="pay-box ${payClass}">
+                                            <div>
+                                                <i class="fas fa-credit-card"></i> STATUS: ${currentPayStatus}<br>
+                                                <small style="font-size:8px; opacity:0.8; font-weight:normal;">TXN ID: ${txText}</small>
+                                            </div>
+                                            <button class="btn-refund" ${refundButtonAttr} onclick="triggerRefund('${o.id}', '${o.total_fare}')">
+                                                <i class="fas fa-undo"></i> Refund
+                                            </button>
+                                        </div>
+
+                                        <label class="addr-label" style="margin-top:12px;">Track & Update Status</label>
+                                        <select id="st-${o.id}">
+                                            <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending (Order Placed)</option>
+                                            <option value="In Transit" ${o.status === 'In Transit' ? 'selected' : ''}>In Transit (On Train)</option>
+                                            <option value="Out for Delivery" ${o.status === 'Out for Delivery' ? 'selected' : ''}>Out for Delivery</option>
+                                            <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered Successfully</option>
+                                            <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled & Refunded</option>
+                                        </select>
+                                        <button class="btn-update" onclick="updateOrderStatus('${o.id}')">SAVE STATUS CHANGES</button>
+                                    </div>`;
+                            });
+                            document.getElementById('masterList').innerHTML = listHTML;
+                            document.getElementById('tOrders').innerText = orderCount;
+                            document.getElementById('tCash').innerText = "₹" + totalCash;
+                        }
+                    });
+                });
+            });
+            loadSettings(); 
+        }
+
+        function sendDirectNativeSMS(phone, otpCode) {
+            if(!phone || !otpCode) {
+                alert("Bhai, Number ya Verification Code update hone me kuch dikkat hai!");
+                return;
+            }
+            const smsMessage = `Sitapur Express: Aapke parcel ka delivery code: ${otpCode} hai. Kripa ise delivery boy ko batayein.`;
+            const smsLink = `sms:${phone}?body=${encodeURIComponent(smsMessage)}`;
+            window.location.href = smsLink;
+        }
+
+        function resetCashCounter() {
+            if(confirm("Bhai, kya aap sach me Total Collected Cash ko zero (₹0) par reset karna chahte hain? Sabhi orders aur list safe rahegi.")) {
+                const serverTimestampPlaceholder = firebase.database.ServerValue.TIMESTAMP;
+                db.ref('admin_settings/cash_reset_timestamp').set(serverTimestampPlaceholder)
+                .then(() => {
+                    alert("💸 Cash collected matrix has been reset successfully!");
+                }).catch(err => alert("Reset Error: " + err.message));
+            }
+        }
+
+        function approveModification(orderId) {
+            if (confirm("Bhai, kya aap sach me ye naye badle hue details approve karna chahte hain?")) {
+                db.ref('modification_requests/' + orderId).once('value', (snap) => {
+                    const reqData = snap.val();
+                    if (!reqData) return alert("Error: Data mismatch sequence!");
+
+                    db.ref('parcel_bookings/' + orderId).update({
+                        receiver_phone: reqData.receiver_phone,
+                        delivery_type: reqData.delivery_type,
+                        drop_point: reqData.drop_point,
+                        delivery_address: reqData.delivery_address
+                    }).then(() => {
+                        db.ref('modification_requests/' + orderId).remove()
+                        .then(() => alert("🟢 Details updated successfully everywhere!"));
+                    }).catch(err => alert("Operation error: " + err.message));
+                });
+            }
+        }
+
+        function rejectModification(orderId) {
+            if (confirm("Kya aap is change request ko cancel/reject karna chahte hain?")) {
+                db.ref('modification_requests/' + orderId).remove()
+                .then(() => alert("🔴 Request successfully wiped out from system."));
+            }
+        }
+
+        function triggerRefund(orderId, amount) {
+            if(confirm(`⚠️ WARNING: Kya aap Order ID #${orderId.substring(1,7).toUpperCase()} ka total ₹${amount} customer ko wapas (Refund) karna chahte hain?`)) {
+                db.ref('parcel_bookings/' + orderId).update({
+                    payment_status: "REFUNDED",
+                    status: "Cancelled"
+                }).then(() => {
+                    alert(`✅ ₹${amount} Refund reference updated in database successfully!`);
+                }).catch(err => alert("Error: " + err.message));
+            }
+        }
+
+        function updateOrderStatus(id) {
+            const newStatus = document.getElementById('st-' + id).value;
+            let updatePayload = { status: newStatus };
+            
+            if (newStatus === "Cancelled") {
+                updatePayload.payment_status = "REFUNDED";
+            } else if (newStatus === "Delivered") {
+                updatePayload.delivered_time = new Date().getTime();
+            }
+
+            db.ref('parcel_bookings/' + id).update(updatePayload).then(() => {
+                alert("Status Updated Successfully to: " + newStatus);
+            }).catch(err => alert("Error updating status: " + err.message));
+        }
+
+        function saveHelpline() {
+            const num = document.getElementById('adminWhatsapp').value;
+            if(num.length < 10) return alert("Sahi number daliye (e.g. 919876543210)");
+            db.ref('admin_settings/helpline').set(num)
+                .then(() => alert("WhatsApp Helpline Synced to Database!"))
+                .catch(err => alert("Error: " + err.message));
+        }
+
+        function saveDeliveryPassword() {
+            const passValue = document.getElementById('deliveryAppPass').value.trim();
+            if(!passValue) return alert("Password khali nahi rakh sakte bhai!");
+            db.ref('admin_settings/delivery_password').set(passValue)
+                .then(() => alert("🔐 Delivery App Password Updated Successfully!"))
+                .catch(err => alert("Database Error: " + err.message));
+        }
+
+        function deleteOrder(id) {
+            if(confirm("Kya aap is order ko delete karna chahte hain?")) {
+                db.ref('parcel_bookings/' + id).remove().then(() => {
+                    db.ref('modification_requests/' + id).remove().then(() => {
+                        alert("Order Deleted everywhere!");
+                    });
+                }).catch(err => alert("Error: " + err.message));
+            }
+        }
+
+        function openAdminModal(src) { 
+            document.getElementById('fullImg').src = src; 
+            document.getElementById('imgModal').style.display = "flex"; 
+        }
+
+        function loadSettings() {
+            db.ref('admin_settings/helpline').once('value', (snap) => {
+                if(snap.val()) document.getElementById('adminWhatsapp').value = snap.val();
+            });
+            db.ref('admin_settings/delivery_password').once('value', (snap) => {
+                if(snap.val()) document.getElementById('deliveryAppPass').value = snap.val();
+            });
+            loadItems(); 
+            loadLocationList(); 
+            loadTimingsList(); 
+        }
+
+        function loadItems() { 
+            db.ref('admin_settings/rates').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if(!data) {
+                    document.getElementById('itemListAdmin').innerHTML = "<p style='font-size:10px; color:#888;'>No pricing found.</p>";
+                    return;
+                }
+                let html = "";
+                Object.keys(data).forEach(key => {
+                    html += `<div style="font-size:11px; padding:8px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; background:#fff; margin-bottom:2px;">
+                        <span><b>${data[key].name}</b> (₹${data[key].price})</span>
+                        <span onclick="deleteItem('${key}')" style="color:red; cursor:pointer; font-weight:800; padding:0 5px;">×</span>
+                    </div>`;
+                });
+                document.getElementById('itemListAdmin').innerHTML = html;
+            });
+        }
+
+        function addItem() { 
+            const name = document.getElementById('newItemName').value.trim();
+            const price = document.getElementById('newItemPrice').value.trim();
+            if(!name || !price) return alert("Poori detail bharein!");
+            
+            db.ref('admin_settings/rates').push({ name: name, price: parseInt(price) })
+                .then(() => {
+                    document.getElementById('newItemName').value = '';
+                    document.getElementById('newItemPrice').value = '';
+                });
+        }
+
+        function deleteItem(key) { 
+            if(confirm("Delete this category?")) {
+                db.ref('admin_settings/rates/' + key).remove();
+            }
+        }
+
+        function loadTimingsList() {
+            db.ref('admin_settings/timing').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if(!data) {
+                    document.getElementById('timingListAdmin').innerHTML = "<p style='font-size:10px; color:#888;'>No dynamic route timings added.</p>";
+                    return;
+                }
+                let html = "";
+                Object.keys(data).forEach(key => {
+                    html += `<div style="font-size:11px; padding:8px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; background:#fff; margin-bottom:2px;">
+                        <span>⏰ <b>${data[key].time}</b> <small style="color:#666; font-weight:bold;">(${data[key].route})</small></span>
+                        <span onclick="deleteTimingSlot('${key}')" style="color:red; cursor:pointer; font-weight:800; padding:0 5px;">×</span>
+                    </div>`;
+                });
+                document.getElementById('timingListAdmin').innerHTML = html;
+            });
+        }
+
+        function addTimingSlot() {
+            const timeTxt = document.getElementById('newBatchTime').value.trim();
+            const routeTxt = document.getElementById('batchRoute').value;
+            if(!timeTxt) return alert("Time batch text likhna zaroori hai!");
+            
+            db.ref('admin_settings/timing').push({ time: timeTxt, route: routeTxt })
+                .then(() => {
+                    document.getElementById('newBatchTime').value = '';
+                });
+        }
+
+        function deleteTimingSlot(key) {
+            if(confirm("Kya aap is timing batch ko system se hatana chahte hain?")) {
+                db.ref('admin_settings/timing/' + key).remove();
+            }
+        }
+
+        function loadLocationList() { 
+            db.ref('admin_settings/stations').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if(!data) {
+                    document.getElementById('locationListAdmin').innerHTML = "<p style='font-size:10px; color:#888;'>No manual route stations added.</p>";
+                    return;
+                }
+                let html = "";
+                Object.keys(data).forEach(key => {
+                    html += `<div style="font-size:11px; padding:8px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; background:#fff; margin-bottom:2px;">
+                        <span>${data[key].name} <small style="color:#666; font-weight:bold;">(${data[key].route})</small></span>
+                        <span onclick="deleteLocation('${key}')" style="color:red; cursor:pointer; font-weight:800; padding:0 5px;">×</span>
+                    </div>`;
+                });
+                document.getElementById('locationListAdmin').innerHTML = html;
+            });
+        }
+
+        function addLocation() {
+    const name = document.getElementById('areaName').value.trim();
+    const route = document.getElementById('areaRoute').value;
+    
+    if(!name) return alert("Station Name bharna zaroori hai!");
+    
+    db.ref('admin_settings/stations').push({ name: name, route: route })
+    .then(() => {
+        document.getElementById('areaName').value = '';
+    });
+}
+
+function deleteLocation(key) {
+    if(confirm("Delete this station point?")) {
+        db.ref('admin_settings/stations/' + key).remove();
+    }
+}
+
+// ENTRY POINT EXECUTOR
+window.onload = bootSecuritySessionGate;
+</script>
+</body>
+</html>

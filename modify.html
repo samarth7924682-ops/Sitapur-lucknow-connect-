@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modify Order | Sitapur Express</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root { --primary: #0c1c3a; --gold: #ffc107; --bg: #f4f7f6; --white: #ffffff; --red: #e74c3c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg); padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .mod-card { background: var(--white); width: 100%; max-width: 450px; padding: 25px 20px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: var(--primary); margin-bottom: 20px; font-weight: 800; font-size: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+        label { font-size: 11px; font-weight: 800; color: #555; margin-bottom: 6px; display: block; padding-left: 5px; text-transform: uppercase; margin-top: 12px; }
+        input, select { width: 100%; padding: 15px; margin-bottom: 12px; border: 1.5px solid #f0f0f0; border-radius: 18px; outline: none; font-size: 13px; font-weight: 600; background: #fafafa; transition: 0.3s; color: var(--primary); }
+        input:focus, select:focus { border-color: var(--primary); background: #fff; }
+
+        .status-strip { background: #e0f2fe; color: #0369a1; padding: 14px; border-radius: 18px; margin-bottom: 15px; font-size: 12px; font-weight: 800; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+        .review-strip { background: #fff3e0; color: #e65100; padding: 14px; border-radius: 18px; margin-bottom: 15px; font-size: 11px; font-weight: 800; text-align: center; border: 1px dashed #ffe0b2; text-transform: uppercase; }
+        .delivery-tag { background: var(--primary); color: var(--gold); padding: 8px 15px; border-radius: 12px; font-size: 11px; font-weight: 800; text-align: center; display: inline-block; text-transform: uppercase; margin-bottom: 10px; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .save-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.2s; box-shadow: 0 4px 12px rgba(12,28,58,0.15); }
+        .save-btn:active { transform: scale(0.98); }
+        
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #64748b; text-decoration: none; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .lock-container { display: none; text-align: center; padding: 30px 10px; }
+        #loader { display: none; text-align: center; padding: 20px; font-size: 13px; color: var(--primary); font-weight: 800; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div class="mod-card" id="mainCard">
+        <h2><i class="fas fa-edit"></i> MODIFY DETAILS</h2>
+        
+        <div id="loader"><i class="fas fa-spinner fa-spin"></i> Fetching Order Details...</div>
+
+        <div class="review-strip" id="reviewBar" style="display: none;">
+            <i class="fas fa-clock"></i> Request already sent! Waiting for approval.
+        </div>
+
+        <div id="editableBody" style="display:none;">
+            <div class="status-strip" id="orderTag">Loading Order...</div>
+
+            <div style="text-align: center;"><div class="delivery-tag" id="modeBadge">Delivery Mode</div></div>
+
+            <label>SENDER INFO</label>
+            <div class="info-grid">
+                <input type="text" id="mSenderName" placeholder="Sender Name" required>
+                <input type="number" id="mSenderPhone" placeholder="Sender Phone" required>
+            </div>
+
+            <label>RECEIVER INFO</label>
+            <div class="info-grid">
+                <input type="text" id="mReceiverName" placeholder="Receiver Name" required>
+                <input type="number" id="mReceiverPhone" placeholder="Receiver Phone" required>
+            </div>
+
+            <div id="dropSection">
+                <label id="dropLabel">DROP POINT / AREA</label>
+                <select id="dropWarehouseSelect" required></select>
+                
+                <div id="amazonAddressBlock" style="display: none;">
+                    <input type="text" id="dFull" placeholder="Flat, House no., Building, Company, Apartment">
+                    <input type="text" id="dLandmark" placeholder="Area, Colony, Street, Sector, Village & Landmark">
+                    <div class="info-grid">
+                        <input type="text" value="Sitapur" readonly style="background: #e9e9e9; color: #555; font-weight: 800;">
+                        <input type="text" value="261001" readonly style="background: #e9e9e9; color: #555; font-weight: 800;">
+                    </div>
+                </div>
+            </div>
+
+            <button class="save-btn" id="submitRequestBtn" onclick="applyChanges()">SUBMIT FOR ADMIN APPROVAL</button>
+        </div>
+
+        <div class="lock-container" id="lockView">
+            <i class="fas fa-user-shield" style="font-size: 40px; color: var(--red); margin-bottom: 15px;"></i>
+            <h3 style="color:var(--red); font-weight:800; text-transform:uppercase;">EDITING LOCKED</h3>
+            <p id="lockViewMsg" style="font-size:11px; color:#64748b; margin-top:10px; font-weight:600; line-height:1.5;">Bhai, aapka parcel 'Reached at Hub' ya 'Out for Delivery' ho chuka hai. Ab details change nahi ho sakti.</p>
+        </div>
+
+        <a href="index.html" class="back-link">Back to Orders</a>
+    </div>
+
+    <script>
+        // --- Firebase Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyC2r-fGV1DycoIdxlVWad46ovdI8GWN3n4",
+            authDomain: "sitapur-express.firebaseapp.com",
+            databaseURL: "https://sitapur-express-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sitapur-express"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const targetId = localStorage.getItem('modifying_id');
+        let currentRoute = ""; 
+        let selectedDeliveryMode = ""; 
+        let originalOrderData = null;
+
+        function init() {
+            if (!targetId) {
+                alert("No Order Selected!");
+                window.location.href = "index.html";
+                return;
+            }
+
+            document.getElementById('loader').style.display = "block";
+
+            db.ref('parcel_bookings/' + targetId).on('value', (snapshot) => {
+                originalOrderData = snapshot.val();
+                document.getElementById('loader').style.display = "none";
+
+                if (!originalOrderData) {
+                    alert("Order not found in database!");
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                currentRoute = originalOrderData.route || "STP ➔ LKO"; 
+                selectedDeliveryMode = (originalOrderData.delivery_type || "STATION").toLowerCase();
+                
+                document.getElementById('orderTag').innerText = "Modifying Order #" + targetId.substring(1,7).toUpperCase();
+                document.getElementById('modeBadge').innerText = selectedDeliveryMode === 'home' ? "🏡 Home Delivery Mode" : "🚉 Station Pickup Mode";
+
+                // LOCK SYSTEM
+                let currentStatus = (originalOrderData.status || "Pending").trim().toLowerCase();
+                if (currentStatus === "reached at hub" || currentStatus === "out for delivery") {
+                    document.getElementById('editableBody').style.display = "none";
+                    document.getElementById('lockView').style.display = "block";
+                    document.getElementById('lockViewMsg').innerText = `Bhai, aapka parcel status abhi "${originalOrderData.status}" hai. Ab details self-change nahi ho sakti.`;
+                    return;
+                } else {
+                    document.getElementById('editableBody').style.display = "block";
+                    document.getElementById('lockView').style.display = "none";
+                }
+
+                // Check pending modification requests
+                db.ref('modification_requests/' + targetId).once('value', (reqSnap) => {
+                    if(reqSnap.exists()) {
+                        document.getElementById('reviewBar').style.display = "block";
+                        document.getElementById('submitRequestBtn').innerText = "UPDATE EXISTING REQUEST";
+                    }
+                });
+
+                // --- SMART AUTO PRE-FILL FIELDS ENGINE ---
+                if(!document.activeElement || document.activeElement.tagName !== "INPUT") {
+                    document.getElementById('mSenderName').value = originalOrderData.sender_name || "";
+                    document.getElementById('mSenderPhone').value = originalOrderData.sender_phone || "";
+                    document.getElementById('mReceiverName').value = originalOrderData.receiver_name || "";
+                    document.getElementById('mReceiverPhone').value = originalOrderData.receiver_phone || "";
+                }
+                
+                updateLayoutFields(true);
+            });
+        }
+
+        function updateLayoutFields(isInitialLoad) {
+            const dSelect = document.getElementById('dropWarehouseSelect');
+            const amazonBlock = document.getElementById('amazonAddressBlock');
+
+            if (currentRoute === 'STP ➔ LKO') {
+                document.getElementById('dropLabel').innerText = "SELECT LUCKNOW DROP STATION";
+                amazonBlock.style.display = 'none';
+                dSelect.style.display = 'block';
+                
+                fetchAndPopulateHubs('STP ➔ LKO', ['Charbagh Station', 'Daliganj Junction', 'Badshahnagar Warehouse'], isInitialLoad);
+            } 
+            else if (currentRoute === 'LKO ➔ STP') {
+                if (selectedDeliveryMode === 'home') {
+                    document.getElementById('dropLabel').innerText = "DELIVERY AREA & ADDRESS (SITAPUR)";
+                    dSelect.style.display = 'none'; // Tabs hidden, direct show address block
+                    amazonBlock.style.display = 'block';
+                    
+                    if (isInitialLoad && originalOrderData.delivery_address && originalOrderData.delivery_address !== "N/A") {
+                        parseAmazonAddress(originalOrderData.delivery_address);
+                    }
+                } else {
+                    document.getElementById('dropLabel').innerText = "SELECT SITAPUR DROP STATION";
+                    amazonBlock.style.display = 'none';
+                    dSelect.style.display = 'block';
+                    
+                    fetchAndPopulateHubs('LKO ➔ STP', ['Sitapur Junction (STP)', 'Sitapur City Jn Hub'], isInitialLoad);
+                }
+            }
+        }
+        
+        function fetchAndPopulateHubs(routeFilter, defaultArray, isInitialLoad) {
+            const selectEl = document.getElementById('dropWarehouseSelect');
+            if(!selectEl) return;
+            
+           // EXACT SAME NODE PATH COPIED FROM BOOKING PAGE
+            db.ref('admin_settings/stations').once('value', (snapshot) => {
+                const data = snapshot.val();
+                let list = defaultArray;
+                
+                if (data) {
+                    const filtered = Object.values(data).filter(w => w.route === routeFilter);
+                    if (filtered.length > 0) {
+                        list = filtered.map(w => w.name);
+                    }
+                }
+                
+                selectEl.innerHTML = list.map(name => `<option value="${name}">${name}</option>`).join('');
+                
+                // Set default choice based on original data fetched
+                if (isInitialLoad && originalOrderData && originalOrderData.drop_point) {
+                    for (let option of selectEl.options) {
+                        if (option.value === originalOrderData.drop_point || originalOrderData.drop_point.includes(option.value)) {
+                            selectEl.value = option.value;
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+
+        function parseAmazonAddress(fullAddressString) {
+            try {
+                let parts = fullAddressString.split(',');
+                let flat = "";
+                let landmark = "";
+
+                parts.forEach(p => {
+                    if (p.includes("Flat/House:")) flat = p.replace("Flat/House:", "").trim();
+                    if (p.includes("Landmark/Street:")) landmark = p.replace("Landmark/Street:", "").trim();
+                });
+
+                if(!flat && !landmark) {
+                    document.getElementById('dFull').value = fullAddressString;
+                } else {
+                    document.getElementById('dFull').value = flat;
+                    document.getElementById('dLandmark').value = landmark;
+                }
+            } catch (e) {
+                document.getElementById('dFull').value = fullAddressString;
+            }
+        }
+
+        function applyChanges() {
+            const sName = document.getElementById('mSenderName').value.trim();
+            const sPhone = document.getElementById('mSenderPhone').value.trim();
+            const rName = document.getElementById('mReceiverName').value.trim();
+            const rPhone = document.getElementById('mReceiverPhone').value.trim();
+            
+            if(!sName || sPhone.length < 10 || !rName || rPhone.length < 10) {
+                alert("Bhai, saari details bharna zaroori hai aur mobile number 10-digit ka hona chahiye!");
+                return;
+            }
+
+            // DUAL GUARD STATUS CHECKS
+            let currentStatus = (originalOrderData.status || "Pending").trim().toLowerCase();
+            if (currentStatus === "reached at hub" || currentStatus === "out for delivery") {
+                alert("❌ Request Failed! Admin ne parcel status badal diya hai, ab modification lock ho chuka hai.");
+                window.location.reload();
+                return;
+            }
+
+            let finalDropPoint = "N/A";
+            let compiledDeliveryDetails = "N/A";
+
+            const dropEl = document.getElementById('dropWarehouseSelect');
+            
+            if (selectedDeliveryMode === 'home' && currentRoute === 'LKO ➔ STP') {
+                finalDropPoint = "Sitapur Doorstep Home Delivery";
+                const hNo = document.getElementById('dFull').value.trim();
+                const lMark = document.getElementById('dLandmark').value.trim() || "No Landmark";
+                
+                if(!hNo) { alert("Address field khali nahi choda ja sakta!"); return; }
+                compiledDeliveryDetails = `Flat/House: ${hNo}, Landmark/Street: ${lMark}, City: Sitapur, Pincode: 261001`;
+            } else {
+                if (dropEl && dropEl.style.display !== 'none' && dropEl.options.length > 0) {
+                    finalDropPoint = dropEl.options[dropEl.selectedIndex].text;
+                }
+            }
+
+            const requestPayload = {
+                orderId: targetId,
+                sender_name: sName,
+                sender_phone: sPhone,
+                receiver_name: rName,
+                receiver_phone: rPhone,
+                delivery_type: selectedDeliveryMode.toUpperCase(),
+                drop_point: finalDropPoint,
+                delivery_address: compiledDeliveryDetails,
+                request_timestamp: firebase.database.ServerValue.TIMESTAMP,
+                approval_status: "Awaiting Staff Review"
+            };
+
+            db.ref('modification_requests/' + targetId).set(requestPayload)
+            .then(() => {
+                alert("Modification Request sent to Staff Queue! Once approved, it will update everywhere.");
+                window.location.href = "index.html";
+            }).catch(err => {
+                alert("Error submitting request: " + err.message);
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

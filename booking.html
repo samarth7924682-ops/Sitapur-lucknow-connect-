@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO OPTIMIZATION -->
+    <title>Book Same Day Courier | Lucknow to Sitapur | Sitapur Express</title>
+    <meta name="description" content="Book fast, reliable, and secure same-day courier service for medicines, medical reports, and parcels between Lucknow and Sitapur.">
+    <meta name="keywords" content="Courier service Lucknow to Sitapur, Same day parcel delivery, Medical report courier, Medicine delivery service, Sitapur Express">
+    <link rel="canonical" href="https://lkostpcouriers.com/">
+
+    <!-- SCHEMA MARKUP FOR LOCAL SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Sitapur Express",
+      "url": "https://lkostpcouriers.com/",
+      "areaServed": ["Lucknow", "Sitapur"],
+      "description": "Professional parcel, medicine, and medical report courier service between Lucknow and Sitapur."
+    }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        :root { --primary: #0c1c3a; --gold: #ffc107; --bg: #f4f7f6; --white: #ffffff; --red: #e74c3c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg); padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .card { background: var(--white); width: 100%; max-width: 450px; padding: 25px 20px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: var(--primary); margin-bottom: 20px; font-weight: 800; font-size: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+        label { font-size: 11px; font-weight: 800; color: #555; margin-bottom: 6px; display: block; padding-left: 5px; text-transform: uppercase; margin-top: 12px; }
+        input, select { width: 100%; padding: 15px; margin-bottom: 12px; border: 1.5px solid #f0f0f0; border-radius: 18px; outline: none; font-size: 13px; font-weight: 600; background: #fafafa; transition: 0.3s; color: var(--primary); }
+        input:focus, select:focus { border-color: var(--primary); background: #fff; }
+
+        .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .photo-box { width: 100%; aspect-ratio: 1/1; border-radius: 15px; border: 2px dashed #ccc; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f9f9f9; cursor: pointer; overflow: hidden; position: relative; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .photo-box span { font-size: 9px; color: #888; text-align: center; font-weight: 800; text-transform: uppercase; pointer-events: none; }
+        .remove-img { position: absolute; top: 4px; right: 4px; background: var(--red); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 10; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 14px; border-radius: 18px; border: 1.5px solid #f0f0f0; background: #fff; font-size: 11px; font-weight: 800; cursor: pointer; color: #888; text-align: center; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        
+        .lock-msg { display: none; background: #fde8e8; color: var(--red); font-size: 10px; font-weight: 800; padding: 14px; border-radius: 18px; border: 1.5px solid #f8b4b4; margin-bottom: 15px; text-align: center; text-transform: uppercase; line-height: 1.4; letter-spacing: 0.3px; }
+
+        .price-box { background: var(--primary); color: var(--gold); padding: 16px; text-align: center; border-radius: 20px; font-weight: 800; font-size: 24px; margin-bottom: 15px; margin-top: 15px; }
+        .price-box small { font-size: 10px; display: block; color: #fff; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px; }
+        
+        .btn { width: 100%; background: var(--gold); color: var(--primary); border: none; padding: 16px; border-radius: 18px; font-weight: 800; cursor: pointer; font-size: 14px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(255,193,7,0.25); transition: 0.2s; letter-spacing: 0.5px; }
+        .btn:active { transform: scale(0.98); }
+        
+        #loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12,28,58,0.98); z-index: 2000; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 20px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .timing-info { font-size: 11px; color: #d35400; font-weight: 800; margin-bottom: 12px; background: #fff3e0; padding: 14px; border-radius: 18px; border-left: 5px solid #ff9800; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div id="loader">
+        <h3 style="font-weight: 800; text-transform: uppercase;">Processing Order...</h3>
+        <p id="loaderSubText" style="font-size:11px; margin-top:10px; color: var(--gold); font-weight: 600;">Loading Photo...</p>
+    </div>
+
+    <div class="card">
+        <h2>ORDER DETAILS</h2>
+        <form id="bookForm" onsubmit="return false;">
+            
+            <label>PARCEL PHOTOS (MAX 10)</label>
+            <div class="photo-grid" id="photoGrid">
+                <div class="photo-box" onclick="document.getElementById('parcelImg').click()">
+                    <span>+ Add Photo</span>
+                </div>
+            </div>
+            
+            <input type="file" id="parcelImg" accept="image/*" style="display:none;">
+
+            <label>SELECT ROUTE</label>
+            <div class="tabs">
+                <div class="tab active" id="stpLko" onclick="setRoute('STP ➔ LKO')">STP ➔ LKO</div>
+                <div class="tab" id="lkoStp" onclick="setRoute('LKO ➔ STP')">LKO ➔ STP</div>
+            </div>
+
+            <label>SENDER INFO</label>
+            <div class="info-grid">
+                <input type="text" id="sName" placeholder="Sender Name" required>
+                <input type="number" id="sPhone" placeholder="Sender Number" required>
+            </div>
+
+            <label>RECEIVER INFO</label>
+            <div class="info-grid">
+                <input type="text" id="n" placeholder="Receiver Name" required>
+                <input type="number" id="p" placeholder="Receiver Number" required>
+            </div>
+
+            <div id="pickupSection">
+                <label id="pickupLabel">PICKUP ADDRESS</label>
+                <input type="text" id="pLoc" placeholder="Where to pick up from?" required>
+                <select id="pWarehouseSelect" style="display: none;" required></select>
+            </div>
+
+            <label>TIMING & SCHEDULE</label>
+            <div id="dynamicTiming" class="timing-info"></div>
+
+            <label>DELIVERY TIME SLOT</label>
+            <select id="timeSlot" required onchange="updateTimingBox()"></select>
+
+            <label id="deliveryLabel">DELIVERY TYPE</label>
+            <div class="tabs" id="deliveryTabs">
+                <div class="tab" id="homeD" onclick="setDelivery('home')">HOME DELIVERY</div>
+                <div class="tab active" id="stationP" onclick="setDelivery('station')">STATION PICKUP</div>
+            </div>
+
+            <div id="lkoLockMsg" class="lock-msg">No home delivery available in Lucknow, select station pickup</div>
+
+            <label>PARCEL TYPE</label>
+            <select id="itemWeight" onchange="calculateTotal()"></select>
+
+            <div id="dropSection">
+                <label id="dropLabel">DROP POINT / AREA</label>
+                <select id="dropWarehouseSelect" onchange="calculateTotal()" required></select>
+                
+                <div id="amazonAddressBlock" style="display: none;">
+                    <input type="text" id="dFull" placeholder="Flat, House no., Building, Company, Apartment">
+                    <input type="text" id="dLandmark" placeholder="Area, Colony, Street, Sector, Village & Landmark">
+                    <div class="info-grid">
+                        <input type="text" value="Sitapur" readonly style="background: #e9e9e9; color: #555; font-weight: 800;">
+                        <input type="text" value="261001" readonly style="background: #e9e9e9; color: #555; font-weight: 800;">
+                    </div>
+                </div>
+            </div>
+            
+             <div class="price-box">
+                <small id="priceLabel">Base Fare</small>
+                ₹<span id="totalPr">0</span>
+            </div>
+            <button type="submit" id="submitBtn" class="btn">PAY & CONFIRM ORDER</button>
+        </form>
+    </div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC2r-fGV1DycoIdxlVWad46ovdI8GWN3n4",
+            authDomain: "sitapur-express.firebaseapp.com",
+            databaseURL: "https://sitapur-express-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sitapur-express"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth(); 
+        
+        const IMGBB_API_KEY = "fc55ab864d0bf2aaf95a602a263080ef"; 
+
+        let currentRoute = 'STP ➔ LKO';
+        let deliveryMode = 'station';
+        let parcelPhotos = []; 
+        let globalTimingSettings = null; 
+        
+        // GLOBAL VARIABLE: Isme Auth State ka user save hoga
+        let currentUser = null;
+
+        // LOGIN RESTRICTION REMOVED: Ab bina login ke bhi form khulega aur chalaega
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                console.log("Sitapur Express Auth Connected User:", user.uid);
+            } else {
+                currentUser = null;
+                console.log("Guest User Mode Enabled (No Auth Restriction)");
+            }
+        });
+
+        document.getElementById('parcelImg').addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            if (parcelPhotos.length >= 10) {
+                alert("Maximum 10 photos allowed!");
+                this.value = "";
+                return;
+            }
+            const loader = document.getElementById('loader');
+            const loaderSub = document.getElementById('loaderSubText');
+            loader.style.display = 'flex';
+            loaderSub.innerText = "Injecting photo into application data...";
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                parcelPhotos.push(e.target.result); 
+                renderPhotoGrid();
+                document.getElementById('parcelImg').value = ""; 
+                loader.style.display = 'none';
+            };
+            reader.onerror = function() {
+                alert("Browser FileReader execution failed!");
+                loader.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function renderPhotoGrid() {
+            const grid = document.getElementById('photoGrid');
+            const addBox = `<div class="photo-box" onclick="document.getElementById('parcelImg').click()"><span>+ Add Photo</span></div>`;
+            let html = parcelPhotos.map((img, index) => `
+                <div class="photo-box">
+                    <img src="${img}">
+                    <div class="remove-img" onclick="removePhoto(${index})">×</div>
+                </div>
+            `).join('');
+            if (parcelPhotos.length < 10) html += addBox;
+            grid.innerHTML = html;
+        }
+
+        function removePhoto(index) {
+            parcelPhotos.splice(index, 1);
+            renderPhotoGrid();
+        }
+
+        function setRoute(route) {
+            currentRoute = route;
+            document.getElementById('stpLko').classList.toggle('active', route === 'STP ➔ LKO');
+            document.getElementById('lkoStp').classList.toggle('active', route === 'LKO ➔ STP');
+            
+            if (route === 'STP ➔ LKO') {
+                deliveryMode = 'station';
+                document.getElementById('homeD').classList.remove('active');
+                document.getElementById('stationP').classList.add('active');
+                document.getElementById('lkoLockMsg').style.display = 'none';
+            } else {
+                deliveryMode = 'home';
+                document.getElementById('homeD').classList.add('active');
+                document.getElementById('stationP').classList.remove('active');
+                document.getElementById('lkoLockMsg').style.display = 'none';
+            }
+            
+            filterBatches();
+            updateUI();
+        }
+
+        function filterBatches() {
+            const slotSelect = document.getElementById('timeSlot');
+        
+            if (globalTimingSettings) {
+                const filtered = Object.values(globalTimingSettings).filter(b => b.route === currentRoute);
+                if (filtered.length > 0) {
+                    slotSelect.innerHTML = filtered.map(b => `<option value="${b.time}">${b.time}</option>`).join('');
+                    updateTimingBox();
+                    return;
+                }
+            }
+            
+            const fallbacks = [
+                {route: 'STP ➔ LKO', time: '09:00 AM'},
+                {route: 'STP ➔ LKO', time: '03:00 PM'},
+                {route: 'LKO ➔ STP', time: '11:00 AM'},
+                {route: 'LKO ➔ STP', time: '06:00 PM'}
+            ];
+            const filteredFallback = fallbacks.filter(b => b.route === currentRoute);
+            slotSelect.innerHTML = filteredFallback.map(b => `<option value="${b.time}">${b.time}</option>`).join('');
+            updateTimingBox();
+        }
+
+        function setDelivery(mode) {
+            deliveryMode = mode;
+            document.getElementById('homeD').classList.toggle('active', mode === 'home');
+            document.getElementById('stationP').classList.toggle('active', mode === 'station');
+            
+            const lockMsg = document.getElementById('lkoLockMsg');
+            if (currentRoute === 'STP ➔ LKO' && mode === 'home') {
+                lockMsg.style.display = 'block';
+            } else {
+                lockMsg.style.display = 'none';
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            const pInput = document.getElementById('pLoc');
+            const pSelect = document.getElementById('pWarehouseSelect');
+            const dSelect = document.getElementById('dropWarehouseSelect');
+            const amazonBlock = document.getElementById('amazonAddressBlock');
+            const submitBtn = document.getElementById('submitBtn');
+
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            document.getElementById('dFull').required = false;
+
+            if (currentRoute === 'STP ➔ LKO') {
+                document.getElementById('pickupLabel').innerText = "PICKUP ADDRESS";
+                pInput.style.display = 'block';
+                pInput.required = true;
+                pSelect.style.display = 'none';
+                pSelect.required = false;
+
+                if (deliveryMode === 'home') {
+                    document.getElementById('dropLabel').innerText = "DROP POINT / AREA";
+                    dSelect.style.display = 'none';
+                    amazonBlock.style.display = 'none';
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.5';
+                } else {
+                    document.getElementById('dropLabel').innerText = "SELECT LUCKNOW DROP STATION";
+                    amazonBlock.style.display = 'none';
+                    dSelect.style.display = 'block';
+                    fetchWarehouses('STP ➔ LKO', 'dropWarehouseSelect', ['Charbagh Station', 'Daliganj Junction', 'Badshahnagar Warehouse']);
+                }
+            } 
+            else if (currentRoute === 'LKO ➔ STP') {
+                document.getElementById('pickupLabel').innerText = "DROP YOUR PARCEL AT (LUCKNOW WAREHOUSE)";
+                pInput.style.display = 'none';
+                pInput.required = false;
+                pSelect.style.display = 'block';
+                pSelect.required = true;
+                
+                fetchWarehouses('STP ➔ LKO', 'pWarehouseSelect', ['Charbagh Station', 'Daliganj Junction', 'Badshahnagar Warehouse']);
+
+                if (deliveryMode === 'home') {
+                    document.getElementById('dropLabel').innerText = "DELIVERY AREA & ADDRESS (SITAPUR)";
+                    dSelect.style.display = 'none';
+                    amazonBlock.style.display = 'block'; 
+                    document.getElementById('dFull').required = true;
+                } else {
+                    document.getElementById('dropLabel').innerText = "SELECT SITAPUR DROP STATION";
+                    amazonBlock.style.display = 'none'; 
+                    dSelect.style.display = 'block';
+                    fetchWarehouses('LKO ➔ STP', 'dropWarehouseSelect', ['Sitapur Junction (STP)', 'Sitapur City Jn Hub']);
+                    document.getElementById('dFull').required = false;
+                }
+            }
+            calculateTotal();
+        }
+
+        function fetchWarehouses(routeFilter, elementId, defaultFallbackArray) {
+            const selectEl = document.getElementById(elementId);
+            
+            if (!selectEl) return;
+
+            db.ref('admin_settings/stations').once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    const filtered = Object.values(data).filter(w => w.route === routeFilter);
+                    if (filtered.length > 0) {
+                        selectEl.innerHTML = filtered.map(w => `<option value="0">${w.name}</option>`).join('');
+                        calculateTotal();
+                        return;
+                    }
+                }
+                selectEl.innerHTML = defaultFallbackArray.map(name => `<option value="0">${name}</option>`).join('');
+                calculateTotal();
+            });
+        }
+
+        function updateTimingBox() {
+            const slotSelect = document.getElementById('timeSlot');
+            const timingBox = document.getElementById('dynamicTiming');
+            const selectedOption = slotSelect.options[slotSelect.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                const time = selectedOption.value;
+                const routeTxt = currentRoute === 'STP ➔ LKO' ? 'Sitapur' : 'Lucknow';
+                const destTxt = currentRoute === 'STP ➔ LKO' ? 'Lucknow' : 'Sitapur';
+                timingBox.innerHTML = `🚀 Dispatch from ${routeTxt}: <b>${time}</b><br>📍 Reach ${destTxt}: <b>~3 Hours later</b>`;
+                timingBox.style.display = "block";
+            }
+        }
+
+        function calculateTotal() {
+            if (currentRoute === 'STP ➔ LKO' && deliveryMode === 'home') {
+                document.getElementById('totalPr').innerText = "0";
+                document.getElementById('priceLabel').innerText = "Service Unavailable";
+                return;
+            }
+
+            let weightPrice = parseInt(document.getElementById('itemWeight').value || 0);
+            let total = weightPrice; 
+            
+            if (currentRoute === 'LKO ➔ STP' && deliveryMode === 'home') {
+                total += 99;
+                document.getElementById('priceLabel').innerText = `Base Fare + Sitapur Doorstep Delivery (+₹99)`;
+            } else {
+                document.getElementById('priceLabel').innerText = `Fixed Station Cargo Fare`;
+            }
+            document.getElementById('totalPr').innerText = total;
+        }
+
+        async function uploadToImgBB(base64Data) {
+            const formData = new FormData();
+            formData.append("image", base64Data.split(",")[1]);
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success && result.data && result.data.url) return result.data.url;
+                return null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        document.getElementById('submitBtn').onclick = async function(e) {
+            e.preventDefault();
+            
+            const senderName = document.getElementById('sName').value;
+            const senderPhone = document.getElementById('sPhone').value.trim();
+            const receiverName = document.getElementById('n').value;
+            const receiverPhone = document.getElementById('p').value.trim();
+
+            if(!senderName || !senderPhone || !receiverName || !receiverPhone) {
+                return alert("Bhai, pehle Sender aur Receiver ki saari details bharo!");
+            }
+            if(parcelPhotos.length === 0) return alert("Bhai, kam se kam 1 photo toh upload karo!");
+            
+            const selectedTime = document.getElementById('timeSlot').value;
+            if(!selectedTime) return alert("Timing select karna zaroori hai!");
+
+            const totalFare = Number(document.getElementById('totalPr').innerText || 0);
+            const loader = document.getElementById('loader');
+            const loaderSub = document.getElementById('loaderSubText');
+            loader.style.display = 'flex';
+            
+            let uploadedUrls = [];
+            for (let i = 0; i < parcelPhotos.length; i++) {
+                loaderSub.innerText = `Uploading Photo ${i+1} of ${parcelPhotos.length}...`;
+                const url = await uploadToImgBB(parcelPhotos[i]);
+                if(url) uploadedUrls.push(url);
+                else {
+                    loader.style.display = 'none';
+                    return alert("Photo upload fail ho gayi!");
+                }
+            }
+
+            loader.style.display = 'none';
+
+            let calculatedPickupAddress = "";
+            let calculatedDropPoint = "";
+            let compiledDeliveryDetails = "N/A";
+
+            if (currentRoute === 'STP ➔ LKO') {
+                calculatedPickupAddress = document.getElementById('pLoc').value;
+                const dropEl = document.getElementById('dropWarehouseSelect');
+                calculatedDropPoint = dropEl ? dropEl.options[dropEl.selectedIndex].text : "N/A";
+            } else {
+                const pickEl = document.getElementById('pWarehouseSelect');
+                calculatedPickupAddress = "Dropped at Hub: " + (pickEl ? pickEl.options[pickEl.selectedIndex].text : "N/A");
+                
+                if (deliveryMode === 'home') {
+                    calculatedDropPoint = "Sitapur Doorstep Home Delivery";
+                    const hNo = document.getElementById('dFull').value;
+                    const lMark = document.getElementById('dLandmark').value || "No Landmark";
+                    compiledDeliveryDetails = `Flat/House: ${hNo}, Landmark/Street: ${lMark}, City: Sitapur, Pincode: 261001`;
+                } else {
+                    const dropEl = document.getElementById('dropWarehouseSelect');
+                    calculatedDropPoint = dropEl ? dropEl.options[dropEl.selectedIndex].text : "N/A";
+                }
+            }
+
+            const trackingOtpToken = Math.floor(1000 + Math.random() * 9000).toString();
+            const currentNumericTimestamp = new Date().getTime();
+
+            // GUEST SAFE COMPILER: Agar log-in user nahi hai toh backup variables chalenge
+            const finalSavedUid = currentUser ? currentUser.uid : "GUEST";
+            const finalSavedPhone = currentUser ? (currentUser.phoneNumber || senderPhone) : senderPhone;
+
+            const finalOrderPayload = {
+                user_uid: finalSavedUid, 
+                login_phone: finalSavedPhone, 
+                sender_name: senderName,
+                sender_phone: senderPhone,
+                receiver_name: receiverName,
+                receiver_phone: receiverPhone,
+                route: currentRoute,
+                delivery_type: deliveryMode.toUpperCase(),
+                total_fare: totalFare, 
+                pickup_location: calculatedPickupAddress,
+                time_slot: selectedTime,
+                drop_point: calculatedDropPoint,
+                delivery_address: compiledDeliveryDetails,
+                parcel_images: uploadedUrls, 
+                parcel_image: uploadedUrls[0], 
+                status: "Pending",
+                currentLocation: "Order Placed",
+                delivery_otp: trackingOtpToken, 
+                otp_unlocked: false, 
+                payment_status: "SUCCESS", 
+                timestamp: currentNumericTimestamp 
+            };
+
+            triggerRazorpayCheckout(finalOrderPayload);
+        };
+
+        function triggerRazorpayCheckout(orderData) {
+            const amountInPaise = Math.round(orderData.total_fare * 100);
+            const options = {
+                "key": "rzp_test_SqRcBW1ug2JlzE", 
+                "amount": amountInPaise,
+                "currency": "INR",
+                "name": "Sitapur Express",
+                "description": "Logistics & Parcel Cargo Fare",
+                "handler": function (response) {
+                    commitOrderToFirebase(orderData, response.razorpay_payment_id);
+                },
+                "prefill": { "name": orderData.sender_name, "contact": orderData.sender_phone },
+                "theme": { "color": "#0c1c3a" },
+                "modal": {
+                    "ondismiss": function() {
+                        console.log("Razorpay Checkout closed by user natively.");
+                    }
+                }
+            };
+            const rzp = new Razorpay(options);
+            
+            rzp.on('payment.failed', function (response){
+                if(response.error.reason !== "payment_dropped") {
+                     alert("Payment Failed: " + response.error.description);
+                }
+            });
+            rzp.open();
+        }
+
+        function commitOrderToFirebase(orderData, txnId) {
+            const loader = document.getElementById('loader');
+            const loaderSub = document.getElementById('loaderSubText');
+            loader.style.display = 'flex';
+            loaderSub.innerText = "Payment Verified! Registering order matrix...";
+            orderData.transaction_id = txnId;
+
+            db.ref('parcel_bookings').push(orderData)
+                .then(() => {
+                     loaderSub.innerText = "Order Booked Successfully!";
+                    setTimeout(() => window.location.replace("index.html"), 1500);
+                })
+                .catch((err) => {
+                    alert("Firebase Database Error: " + err.message);
+                    loader.style.display = 'none';
+                });
+        }
+
+        window.onload = () => {
+            db.ref('admin_settings/rates').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const itemSelect = document.getElementById('itemWeight');
+                if (data) {
+                    itemSelect.innerHTML = Object.values(data).map(it => 
+                        `<option value="${it.price}">${it.name} - ₹${it.price}</option>`
+                    ).join('');
+                } else {
+                    const fallbacks = [
+                        { name: "Small Box (0-500g)", price: 199 }, 
+                        { name: "Medium Box (1-2kg)", price: 349 }, 
+                        { name: "Large Bag (5kg+)", price: 599 }
+                    ];
+                    itemSelect.innerHTML = fallbacks.map(it => 
+                        `<option value="${it.price}">${it.name} - ₹${it.price}</option>`
+                    ).join('');
+                }
+                calculateTotal();
+            });
+
+            db.ref('admin_settings/timing').on('value', (snapshot) => {
+                globalTimingSettings = snapshot.val();
+                filterBatches();
+            });
+
+            setRoute('STP ➔ LKO');
+        };
+    </script>
+</body>
+</html>
