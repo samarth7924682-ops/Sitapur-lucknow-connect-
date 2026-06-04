@@ -15,38 +15,175 @@
         .auth-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 25px; }
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 10px; font-weight: 800; color: var(--primary); margin-bottom: 6px; text-transform: uppercase; }
-        .input-group input { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 14px; font-size: 15px; font-weight: 600; outline: none; color: var(--primary); }
-        .auth-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 14px; font-size: 14px; font-weight: 800; cursor: pointer; }
+        .input-group input { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 14px; font-size: 15px; font-weight: 600; outline: none; color: var(--primary); transition: border 0.2s; }
+        .input-group input:focus { border-color: var(--gold); }
+        .auth-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 14px; font-size: 14px; font-weight: 800; cursor: pointer; transition: opacity 0.2s; }
+        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .auth-btn:hover:not(:disabled) { opacity: 0.85; }
+        #otpSection { display: none; }
+        .resend-text { font-size: 12px; color: var(--text-muted); margin-top: 12px; }
+        .resend-text span { color: var(--primary); font-weight: 700; cursor: pointer; }
+        .resend-text span:hover { text-decoration: underline; }
+        .msg { font-size: 12px; margin-top: 10px; padding: 8px 12px; border-radius: 8px; display: none; }
+        .msg.success { background: #d1fae5; color: #065f46; display: block; }
+        .msg.error { background: #fee2e2; color: #991b1b; display: block; }
+        #timer { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
     </style>
 </head>
 <body>
     <div class="auth-card">
         <div style="font-size: 38px; color: var(--gold); margin-bottom: 12px;"><i class="fas fa-train"></i></div>
         <h2>Sitapur Express</h2>
-        <p>Client Verification Portal</p>
-        <div class="input-group">
-            <label>Mobile Number</label>
-            <input type="tel" id="phoneNumber" placeholder="Enter 10-digit Number" maxlength="12">
+        <p id="subTitle">Client Verification Portal</p>
+
+        <!-- Step 1: Phone Number -->
+        <div id="phoneSection">
+            <div class="input-group">
+                <label>Mobile Number</label>
+                <input type="tel" id="phoneNumber" placeholder="Enter 10-digit Number" maxlength="10">
+            </div>
+            <div id="phoneMsg" class="msg"></div>
+            <button class="auth-btn" id="sendOtpBtn">SEND OTP</button>
         </div>
-        <button class="auth-btn" id="loginBtn">LOGIN NOW</button>
+
+        <!-- Step 2: OTP Verify -->
+        <div id="otpSection">
+            <div class="input-group">
+                <label>Enter OTP</label>
+                <input type="number" id="otpInput" placeholder="Enter 6-digit OTP" maxlength="6">
+            </div>
+            <div id="otpMsg" class="msg"></div>
+            <button class="auth-btn" id="verifyOtpBtn">VERIFY OTP</button>
+            <div id="timer"></div>
+            <div class="resend-text">OTP nahi aaya? <span id="resendBtn" style="display:none;" onclick="resendOTP()">Resend OTP</span></div>
+        </div>
     </div>
 
     <script>
-        document.getElementById('loginBtn').addEventListener('click', () => {
-            let phone = document.getElementById('phoneNumber').value.trim();
-            if(phone.length >= 10) {
-                localStorage.setItem("user_phone", phone); // Yahi key index.html mein use hogi
-                localStorage.setItem("user_logged_in", "true");
-                window.location.href = "index.html";
+        // ⚠️ APITXT API KEY - Ise server side par rakhna better hoga production mein
+        const APITXT_AUTH_KEY = "7wx0YTb39xZuarBHYZvMt3wWTjKRHsqkSI-hzHgr1ZY";
+
+        let generatedOTP = "";
+        let userPhone = "";
+        let timerInterval;
+        let timerSeconds = 60;
+
+        // Agar pehle se login hai toh seedha index.html par bhejo
+        if (localStorage.getItem("user_logged_in") === "true") {
+            window.location.href = "index.html";
+        }
+
+        // 6 digit random OTP generate karo
+        function generateOTP() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Timer start karo
+        function startTimer() {
+            timerSeconds = 60;
+            document.getElementById("resendBtn").style.display = "none";
+            document.getElementById("timer").innerText = `Resend in ${timerSeconds}s`;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                document.getElementById("timer").innerText = `Resend in ${timerSeconds}s`;
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById("timer").innerText = "";
+                    document.getElementById("resendBtn").style.display = "inline";
+                }
+            }, 1000);
+        }
+
+        // Apitxt se OTP bhejo
+        async function sendOTPviaAPI(phone, otp) {
+            const url = `https://apitxt.com/api/sendOTP?authkey=${APITXT_AUTH_KEY}&mobile=91${phone}&otp=${otp}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                return data.status === 200 || data.message === "success";
+            } catch (err) {
+                console.error("API Error:", err);
+                return false;
+            }
+        }
+
+        // OTP Send button
+        document.getElementById("sendOtpBtn").addEventListener("click", async () => {
+            const phone = document.getElementById("phoneNumber").value.trim();
+            const msgEl = document.getElementById("phoneMsg");
+
+            if (phone.length !== 10 || isNaN(phone)) {
+                msgEl.className = "msg error";
+                msgEl.innerText = "Please enter a valid 10-digit mobile number.";
+                return;
+            }
+
+            userPhone = phone;
+            generatedOTP = generateOTP();
+
+            const btn = document.getElementById("sendOtpBtn");
+            btn.disabled = true;
+            btn.innerText = "Sending...";
+            msgEl.className = "msg";
+            msgEl.innerText = "";
+
+            const success = await sendOTPviaAPI(phone, generatedOTP);
+
+            if (success) {
+                document.getElementById("phoneSection").style.display = "none";
+                document.getElementById("otpSection").style.display = "block";
+                document.getElementById("subTitle").innerText = `OTP sent to 91-XXXXXX${phone.slice(-4)}`;
+                startTimer();
             } else {
-                alert("Please enter a valid mobile number.");
+                msgEl.className = "msg error";
+                msgEl.innerText = "OTP send karne mein error aayi. Dobara try karo.";
+                btn.disabled = false;
+                btn.innerText = "SEND OTP";
             }
         });
-        // Agar pehle se login hai, toh login page dikhao hi mat, seedha index par bhej do
-if (localStorage.getItem("user_logged_in") === "true") {
-    window.location.href = "index.html";
-}
 
+        // OTP Verify button
+        document.getElementById("verifyOtpBtn").addEventListener("click", () => {
+            const enteredOTP = document.getElementById("otpInput").value.trim();
+            const msgEl = document.getElementById("otpMsg");
+
+            if (enteredOTP === generatedOTP) {
+                clearInterval(timerInterval);
+                msgEl.className = "msg success";
+                msgEl.innerText = "OTP verified! Redirecting...";
+                localStorage.setItem("user_phone", userPhone);
+                localStorage.setItem("user_logged_in", "true");
+                setTimeout(() => { window.location.href = "index.html"; }, 1000);
+            } else {
+                msgEl.className = "msg error";
+                msgEl.innerText = "Galat OTP! Dobara try karo.";
+            }
+        });
+
+        // Resend OTP
+        function resendOTP() {
+            generatedOTP = generateOTP();
+            sendOTPviaAPI(userPhone, generatedOTP).then(success => {
+                const msgEl = document.getElementById("otpMsg");
+                if (success) {
+                    msgEl.className = "msg success";
+                    msgEl.innerText = "OTP resend ho gaya!";
+                    startTimer();
+                } else {
+                    msgEl.className = "msg error";
+                    msgEl.innerText = "Resend mein error aayi. Dobara try karo.";
+                }
+            });
+        }
+
+        // Enter key support
+        document.getElementById("phoneNumber").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") document.getElementById("sendOtpBtn").click();
+        });
+        document.getElementById("otpInput").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") document.getElementById("verifyOtpBtn").click();
+        });
     </script>
 </body>
 </html>
