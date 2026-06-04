@@ -97,7 +97,7 @@
 
         // Apitxt se OTP bhejo
         async function sendOTPviaAPI(phone, otp) {
-            const url = `https://apitxt.com/api/sendOTP?authkey=${APITXT_AUTH_KEY}&mobile=91${phone}&otp=${otp}`;
+            const url = `/api/sendotp?mobile=${phone}&otp=${otp}`;
             try {
                 const response = await fetch(url);
                 const data = await response.json();
