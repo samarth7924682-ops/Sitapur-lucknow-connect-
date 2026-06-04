@@ -97,7 +97,7 @@
 
         // Apitxt se OTP bhejo
         async function sendOTPviaAPI(phone, otp) {
-            const url = `https://corsproxy.io/?https://apitxt.com/api/sendOTP?authkey=7wx0YTb39xZuarBHYZvMt3wWTjKRHsqkSI-hzHgr1ZY&mobile=91${phone}&otp=${otp}`;
+            const url = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://apitxt.com/api/sendOTP?authkey=7wx0YTb39xZuarBHYZvMt3wWTjKRHsqkSI-hzHgr1ZY&mobile=91'+phone+'&otp='+otp)}`;
             try {
                 const response = await fetch(url);
                 const data = await response.json();
