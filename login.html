@@ -96,17 +96,17 @@
         }
 
         // Apitxt se OTP bhejo
-        async function sendOTPviaAPI(phone, otp) {
-            const url = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://apitxt.com/api/sendOTP?authkey=7wx0YTb39xZuarBHYZvMt3wWTjKRHsqkSI-hzHgr1ZY&mobile=91'+phone+'&otp='+otp)}`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                return data.status === 200 || data.message === "success";
-            } catch (err) {
-                console.error("API Error:", err);
-                return false;
-            }
-        }
+async function sendOTPviaAPI(phone, otp) {
+    return new Promise((resolve) => {
+        window.handleOTP = function(data) {
+            resolve(data.status === 200 || data.message === "success");
+        };
+        const script = document.createElement('script');
+        script.src = `https://apitxt.com/api/sendOTP?authkey=7wx0YTb39xZuarBHYZvMt3wWTjKRHsqkSI-hzHgr1ZY&mobile=91${phone}&otp=${otp}&callback=handleOTP`;
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+    });
+}
 
         // OTP Send button
         document.getElementById("sendOtpBtn").addEventListener("click", async () => {
@@ -131,7 +131,7 @@
             const success = await sendOTPviaAPI(phone, generatedOTP);
 
             if (success) {
-                document.getElementById("phoneSection").style.display = "none";
+               document.getElementById("phoneSection").style.display = "none";
                 document.getElementById("otpSection").style.display = "block";
                 document.getElementById("subTitle").innerText = `OTP sent to 91-XXXXXX${phone.slice(-4)}`;
                 startTimer();
@@ -141,7 +141,7 @@
                 btn.disabled = false;
                 btn.innerText = "SEND OTP";
             }
-        });
+        }); 
 
         // OTP Verify button
         document.getElementById("verifyOtpBtn").addEventListener("click", () => {
