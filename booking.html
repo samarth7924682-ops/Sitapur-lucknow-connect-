@@ -299,7 +299,7 @@
                 pSelect.style.display = 'none';
                 pSelect.required = false;
 
-                if (deliveryMode === 'home') {
+                  if (deliveryMode === 'home') {
                     document.getElementById('dropLabel').innerText = "DROP POINT / AREA";
                     dSelect.style.display = 'none';
                     amazonBlock.style.display = 'none';
@@ -520,6 +520,11 @@
                 loader.style.display = 'none';
                 
                 if (data.payment_session_id) {
+                    // Order data save karo localStorage mein
+                    orderData.order_id = orderId;
+                    orderData.payment_session_id = data.payment_session_id;
+                    localStorage.setItem("pending_order", JSON.stringify(orderData));
+                    
                     const cashfree = Cashfree({ mode: "production" });
                     cashfree.checkout({
                         paymentSessionId: data.payment_session_id,
@@ -552,7 +557,25 @@
                 });
         }
 
-        window.onload = () => {
+        window.onload = async () => {
+            // Payment return handle karo
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnOrderId = urlParams.get('order_id');
+            
+            if (returnOrderId) {
+                const pendingOrder = localStorage.getItem("pending_order");
+                if (pendingOrder) {
+                    const orderData = JSON.parse(pendingOrder);
+                    if (orderData.order_id === returnOrderId) {
+                        localStorage.removeItem("pending_order");
+                        orderData.transaction_id = returnOrderId;
+                        orderData.payment_status = "SUCCESS";
+                        commitOrderToFirebase(orderData, returnOrderId);
+                        return;
+                    }
+                }
+            }
+
             db.ref('admin_settings/rates').on('value', (snapshot) => {
                 const data = snapshot.val();
                 const itemSelect = document.getElementById('itemWeight');
