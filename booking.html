@@ -539,43 +539,16 @@
                 loader.style.display = 'none';
                 
                 if (data.payment_session_id) {
-                    // Order data save karo localStorage mein
+                    // Order data localStorage mein save karo redirect ke liye
                     orderData.order_id = orderId;
-                    orderData.payment_session_id = data.payment_session_id;
                     localStorage.setItem("pending_order", JSON.stringify(orderData));
+                    localStorage.setItem("user_logged_in", "true");
+                    localStorage.setItem("user_phone", orderData.sender_phone);
                     
                     const cashfree = Cashfree({ mode: "production" });
-                    const checkoutOptions = {
+                    cashfree.checkout({
                         paymentSessionId: data.payment_session_id,
-                        redirectTarget: "_modal"
-                    };
-                    cashfree.checkout(checkoutOptions).then(function(result) {
-                        if(result.error) {
-                            alert("Payment error: " + result.error.message);
-                            return;
-                        }
-                        if(result.paymentDetails) {
-                            // Payment success
-                            const pending = localStorage.getItem("pending_order");
-                            if(pending) {
-                                const savedOrder = JSON.parse(pending);
-                                localStorage.removeItem("pending_order");
-                                savedOrder.transaction_id = result.paymentDetails.paymentMessage || orderId;
-                                savedOrder.payment_status = "SUCCESS";
-                                commitOrderToFirebase(savedOrder, savedOrder.transaction_id);
-                            }
-                        }
-                        if(result.redirect) {
-                            // Redirect flow
-                            const pending = localStorage.getItem("pending_order");
-                            if(pending) {
-                                const savedOrder = JSON.parse(pending);
-                                localStorage.removeItem("pending_order");
-                                savedOrder.transaction_id = orderId;
-                                savedOrder.payment_status = "SUCCESS";
-                                commitOrderToFirebase(savedOrder, orderId);
-                            }
-                        }
+                        redirectTarget: "_self"
                     });
                 } else {
                     alert("Payment initialize karne mein error: " + JSON.stringify(data));
@@ -614,15 +587,25 @@ setTimeout(() => window.location.replace("index.html"), 1500);
             if (returnOrderId) {
                 const pendingOrder = localStorage.getItem("pending_order");
                 if (pendingOrder) {
-                    const orderData = JSON.parse(pendingOrder);
-                    if (orderData.order_id === returnOrderId) {
+                    try {
+                        const orderData = JSON.parse(pendingOrder);
                         localStorage.removeItem("pending_order");
                         orderData.transaction_id = returnOrderId;
                         orderData.payment_status = "SUCCESS";
+                        // Show loader
+                        const loader = document.getElementById('loader');
+                        const loaderSub = document.getElementById('loaderSubText');
+                        if(loader) loader.style.display = 'flex';
+                        if(loaderSub) loaderSub.innerText = "Order save ho raha hai...";
                         commitOrderToFirebase(orderData, returnOrderId);
                         return;
+                    } catch(e) {
+                        console.error("Order parse error:", e);
                     }
                 }
+                // Agar pending order nahi mila toh index pe bhejo
+                window.location.replace("index.html");
+                return;
             }
 
             db.ref('admin_settings/rates').on('value', (snapshot) => {
