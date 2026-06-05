@@ -527,11 +527,12 @@
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        order_id: orderId,
-                        amount: orderData.total_fare,
-                        customer_name: orderData.sender_name,
-                        customer_phone: orderData.sender_phone
-                    })
+    order_id: orderId,
+    amount: orderData.total_fare,
+    customer_name: orderData.sender_name,
+    customer_phone: orderData.sender_phone,
+    order_data: orderData
+})
                 });
                 
                 const data = await res.json();
