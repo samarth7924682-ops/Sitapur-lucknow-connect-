@@ -539,15 +539,16 @@
                 
                 if (data.payment_session_id) {
                     // Order data localStorage mein save karo redirect ke liye
-                    orderData.order_id = orderId;
-                    localStorage.setItem("pending_order", JSON.stringify(orderData));
+                     orderData.order_id = orderId;
+     orderData.login_phone = localStorage.getItem("user_phone");
+localStorage.setItem("pending_order", JSON.stringify(orderData));
                     localStorage.setItem("user_logged_in", "true");
                     localStorage.setItem("user_phone", orderData.sender_phone);
                     
                     const cashfree = Cashfree({ mode: "production" });
                     cashfree.checkout({
                         paymentSessionId: data.payment_session_id,
-                        redirectTarget: "_self"
+                        redirectTarget: "_modal"
                     });
                 } else {
                     alert("Payment initialize karne mein error: " + JSON.stringify(data));
