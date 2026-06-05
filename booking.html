@@ -31,6 +31,15 @@
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
     <style>
+        #cashfree-iframe, iframe[src*="cashfree"] {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 9999 !important;
+            border: none !important;
+        }
         :root { --primary: #0c1c3a; --gold: #ffc107; --bg: #f4f7f6; --white: #ffffff; --red: #e74c3c; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--bg); padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
