@@ -537,7 +537,20 @@
                     const cashfree = Cashfree({ mode: "production" });
                     cashfree.checkout({
                         paymentSessionId: data.payment_session_id,
-                        redirectTarget: "_modal"
+                        redirectTarget: "_self",
+                        onSuccess: function(data) {
+                            const pending = localStorage.getItem("pending_order");
+                            if(pending) {
+                                const orderData = JSON.parse(pending);
+                                localStorage.removeItem("pending_order");
+                                orderData.transaction_id = data.transaction ? data.transaction.transactionId : orderId;
+                                orderData.payment_status = "SUCCESS";
+                                commitOrderToFirebase(orderData, orderData.transaction_id);
+                            }
+                        },
+                        onFailure: function(data) {
+                            alert("Payment failed ya cancel ho gaya!");
+                        }
                     });
                 } else {
                     alert("Payment initialize karne mein error: " + JSON.stringify(data));
