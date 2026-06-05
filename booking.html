@@ -308,7 +308,7 @@
                 pSelect.style.display = 'none';
                 pSelect.required = false;
 
-                  if (deliveryMode === 'home') {
+                if (deliveryMode === 'home') {
                     document.getElementById('dropLabel').innerText = "DROP POINT / AREA";
                     dSelect.style.display = 'none';
                     amazonBlock.style.display = 'none';
@@ -319,16 +319,6 @@
                     amazonBlock.style.display = 'none';
                     dSelect.style.display = 'block';
                     fetchWarehouses('STP ➔ LKO', 'dropWarehouseSelect', ['Charbagh Station', 'Daliganj Junction', 'Badshahnagar Warehouse']);
-                }
-            } 
-            else if (currentRoute === 'LKO ➔ STP') {
-                document.getElementById('pickupLabel').innerText = "DROP YOUR PARCEL AT (LUCKNOW WAREHOUSE)";
-                pInput.style.display = 'none';
-                pInput.required = false;
-                pSelect.style.display = 'block';
-                pSelect.required = true;
-                
-                fetchWarehouses('STP ➔ LKO', 'dropWarehouseSelect', ['Charbagh Station', 'Daliganj Junction', 'Badshahnagar Warehouse']);
                 }
             } 
             else if (currentRoute === 'LKO ➔ STP') {
