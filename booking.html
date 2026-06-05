@@ -528,7 +528,7 @@
                     const cashfree = Cashfree({ mode: "production" });
                     cashfree.checkout({
                         paymentSessionId: data.payment_session_id,
-                        redirectTarget: "_self"
+                        redirectTarget: "_modal"
                     });
                 } else {
                     alert("Payment initialize karne mein error: " + JSON.stringify(data));
@@ -549,7 +549,9 @@
             db.ref('parcel_bookings').push(orderData)
                 .then(() => {
                     loaderSub.innerText = "Order Booked Successfully!";
-                    setTimeout(() => window.location.replace("index.html"), 1500);
+                    localStorage.setItem("user_logged_in", "true");
+localStorage.setItem("user_phone", orderData.sender_phone);
+setTimeout(() => window.location.replace("index.html"), 1500);
                 })
                 .catch((err) => {
                     alert("Firebase Database Error: " + err.message);
