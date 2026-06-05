@@ -579,35 +579,7 @@ setTimeout(() => window.location.replace("index.html"), 1500);
                 });
         }
 
-        window.onload = async () => {
-            // Payment return handle karo
-            const urlParams = new URLSearchParams(window.location.search);
-            const returnOrderId = urlParams.get('order_id');
-            
-            if (returnOrderId) {
-                const pendingOrder = localStorage.getItem("pending_order");
-                if (pendingOrder) {
-                    try {
-                        const orderData = JSON.parse(pendingOrder);
-                        localStorage.removeItem("pending_order");
-                        orderData.transaction_id = returnOrderId;
-                        orderData.payment_status = "SUCCESS";
-                        // Show loader
-                        const loader = document.getElementById('loader');
-                        const loaderSub = document.getElementById('loaderSubText');
-                        if(loader) loader.style.display = 'flex';
-                        if(loaderSub) loaderSub.innerText = "Order save ho raha hai...";
-                        commitOrderToFirebase(orderData, returnOrderId);
-                        return;
-                    } catch(e) {
-                        console.error("Order parse error:", e);
-                    }
-                }
-                // Agar pending order nahi mila toh index pe bhejo
-                window.location.replace("index.html");
-                return;
-            }
-
+        function initBookingPage() {
             db.ref('admin_settings/rates').on('value', (snapshot) => {
                 const data = snapshot.val();
                 const itemSelect = document.getElementById('itemWeight');
@@ -634,6 +606,40 @@ setTimeout(() => window.location.replace("index.html"), 1500);
             });
 
             setRoute('STP ➔ LKO');
+        }
+
+        window.onload = async () => {
+            // Payment return handle karo
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnOrderId = urlParams.get('order_id');
+            
+            if (returnOrderId) {
+                const pendingOrder = localStorage.getItem("pending_order");
+                if (pendingOrder) {
+                    try {
+                        const orderData = JSON.parse(pendingOrder);
+                        localStorage.removeItem("pending_order");
+                        orderData.transaction_id = returnOrderId;
+                        orderData.payment_status = "SUCCESS";
+                        const loader = document.getElementById('loader');
+                        const loaderSub = document.getElementById('loaderSubText');
+                        if(loader) loader.style.display = 'flex';
+                        if(loaderSub) loaderSub.innerText = "Order save ho raha hai...";
+                        commitOrderToFirebase(orderData, returnOrderId);
+                        return;
+                    } catch(e) {
+                        console.error("Order parse error:", e);
+                        // Error hone par bhi page load karo
+                        initBookingPage();
+                    }
+                } else {
+                    // Pending order nahi mila — normal page load karo
+                    initBookingPage();
+                }
+            } else {
+                // Normal page load
+                initBookingPage();
+            }
         };
     </script>
 </body>
