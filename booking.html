@@ -28,7 +28,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
     <style>
         :root { --primary: #0c1c3a; --gold: #ffc107; --bg: #f4f7f6; --white: #ffffff; --red: #e74c3c; }
@@ -110,7 +110,7 @@
             <label>TIMING & SCHEDULE</label>
             <div id="dynamicTiming" class="timing-info"></div>
 
-            <label>DELIVERY TIME SLOT</label>
+            <label>GIVE YOU ORDER BEFORE GIVEN TIME TO GET SAME DAY DELIVERY</label>
             <select id="timeSlot" required onchange="updateTimingBox()"></select>
 
             <label id="deliveryLabel">DELIVERY TYPE</label>
@@ -493,36 +493,45 @@
                 timestamp: currentNumericTimestamp 
             };
 
-            triggerRazorpayCheckout(finalOrderPayload);
+            triggerCashfreeCheckout(finalOrderPayload);
         };
 
-        function triggerRazorpayCheckout(orderData) {
-            const amountInPaise = Math.round(orderData.total_fare * 100);
-            const options = {
-                "key": "rzp_test_SqRcBW1ug2JlzE", 
-                "amount": amountInPaise,
-                "currency": "INR",
-                "name": "Sitapur Express",
-                "description": "Logistics & Parcel Cargo Fare",
-                "handler": function (response) {
-                    commitOrderToFirebase(orderData, response.razorpay_payment_id);
-                },
-                "prefill": { "name": orderData.sender_name, "contact": orderData.sender_phone },
-                "theme": { "color": "#0c1c3a" },
-                "modal": {
-                    "ondismiss": function() {
-                        console.log("Razorpay Checkout closed by user natively.");
-                    }
-                }
-            };
-            const rzp = new Razorpay(options);
+        async function triggerCashfreeCheckout(orderData) {
+            const loader = document.getElementById('loader');
+            const loaderSub = document.getElementById('loaderSubText');
+            loader.style.display = 'flex';
+            loaderSub.innerText = "Payment initialize ho rahi hai...";
+
+            const orderId = "ORD_" + Date.now();
             
-            rzp.on('payment.failed', function (response){
-                if(response.error.reason !== "payment_dropped") {
-                     alert("Payment Failed: " + response.error.description);
+            try {
+                const res = await fetch("https://cashfree-order.samarth7924682.workers.dev", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        amount: orderData.total_fare,
+                        customer_name: orderData.sender_name,
+                        customer_phone: orderData.sender_phone
+                    })
+                });
+                
+                const data = await res.json();
+                loader.style.display = 'none';
+                
+                if (data.payment_session_id) {
+                    const cashfree = Cashfree({ mode: "production" });
+                    cashfree.checkout({
+                        paymentSessionId: data.payment_session_id,
+                        redirectTarget: "_self"
+                    });
+                } else {
+                    alert("Payment initialize karne mein error: " + JSON.stringify(data));
                 }
-            });
-            rzp.open();
+            } catch(err) {
+                loader.style.display = 'none';
+                alert("Payment error: " + err.message);
+            }
         }
 
         function commitOrderToFirebase(orderData, txnId) {
@@ -534,7 +543,7 @@
 
             db.ref('parcel_bookings').push(orderData)
                 .then(() => {
-                     loaderSub.innerText = "Order Booked Successfully!";
+                    loaderSub.innerText = "Order Booked Successfully!";
                     setTimeout(() => window.location.replace("index.html"), 1500);
                 })
                 .catch((err) => {
