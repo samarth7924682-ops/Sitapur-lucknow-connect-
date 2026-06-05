@@ -328,6 +328,16 @@
                 pSelect.style.display = 'block';
                 pSelect.required = true;
                 
+                fetchWarehouses('STP ➔ LKO', 'dropWarehouseSelect', ['Charbagh Station', 'Daliganj Junction', 'Badshahnagar Warehouse']);
+                }
+            } 
+            else if (currentRoute === 'LKO ➔ STP') {
+                document.getElementById('pickupLabel').innerText = "DROP YOUR PARCEL AT (LUCKNOW WAREHOUSE)";
+                pInput.style.display = 'none';
+                pInput.required = false;
+                pSelect.style.display = 'block';
+                pSelect.required = true;
+                
                 fetchWarehouses('STP ➔ LKO', 'pWarehouseSelect', ['Charbagh Station', 'Daliganj Junction', 'Badshahnagar Warehouse']);
 
                 if (deliveryMode === 'home') {
@@ -535,21 +545,36 @@
                     localStorage.setItem("pending_order", JSON.stringify(orderData));
                     
                     const cashfree = Cashfree({ mode: "production" });
-                    cashfree.checkout({
+                    const checkoutOptions = {
                         paymentSessionId: data.payment_session_id,
-                        redirectTarget: "_self",
-                        onSuccess: function(data) {
+                        redirectTarget: "_modal"
+                    };
+                    cashfree.checkout(checkoutOptions).then(function(result) {
+                        if(result.error) {
+                            alert("Payment error: " + result.error.message);
+                            return;
+                        }
+                        if(result.paymentDetails) {
+                            // Payment success
                             const pending = localStorage.getItem("pending_order");
                             if(pending) {
-                                const orderData = JSON.parse(pending);
+                                const savedOrder = JSON.parse(pending);
                                 localStorage.removeItem("pending_order");
-                                orderData.transaction_id = data.transaction ? data.transaction.transactionId : orderId;
-                                orderData.payment_status = "SUCCESS";
-                                commitOrderToFirebase(orderData, orderData.transaction_id);
+                                savedOrder.transaction_id = result.paymentDetails.paymentMessage || orderId;
+                                savedOrder.payment_status = "SUCCESS";
+                                commitOrderToFirebase(savedOrder, savedOrder.transaction_id);
                             }
-                        },
-                        onFailure: function(data) {
-                            alert("Payment failed ya cancel ho gaya!");
+                        }
+                        if(result.redirect) {
+                            // Redirect flow
+                            const pending = localStorage.getItem("pending_order");
+                            if(pending) {
+                                const savedOrder = JSON.parse(pending);
+                                localStorage.removeItem("pending_order");
+                                savedOrder.transaction_id = orderId;
+                                savedOrder.payment_status = "SUCCESS";
+                                commitOrderToFirebase(savedOrder, orderId);
+                            }
                         }
                     });
                 } else {
