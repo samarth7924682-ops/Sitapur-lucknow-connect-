@@ -520,7 +520,8 @@
             loader.style.display = 'flex';
             loaderSub.innerText = "Payment initialize ho rahi hai...";
 
-            const orderId = "ORD_" + Date.now();
+            const counterSnap = await db.ref('order_counter').transaction(val => (val || 5000) + 1);
+const orderId = "ORD_" + counterSnap.snapshot.val();
             orderData.order_id = orderId;
 orderData.login_phone = localStorage.getItem("user_phone");
             
@@ -547,7 +548,8 @@ localStorage.setItem("pending_order", JSON.stringify(orderData));
                     localStorage.setItem("user_logged_in", "true");
                     localStorage.setItem("user_phone", orderData.sender_phone);
                     
-                    const cashfree = Cashfree({ mode: "production" });
+                   let paymentStarted = true;
+                   const cashfree = Cashfree({ mode: "production" });
 cashfree.checkout({
     paymentSessionId: data.payment_session_id,
     redirectTarget: "_modal",
@@ -559,8 +561,9 @@ cashfree.checkout({
     }
 });
 
-document.addEventListener("visibilitychange", async () => {
-    if (document.visibilityState === "visible" && typeof orderId !== 'undefined') {
+window.addEventListener("focus", async () => {
+    if (typeof orderId !== 'undefined' && paymentStarted) {
+        await new Promise(r => setTimeout(r, 3000));
         try {
             const snap = await db.ref('parcel_bookings/' + orderId).once('value');
             if (snap.val()) {

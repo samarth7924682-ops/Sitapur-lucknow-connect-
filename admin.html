@@ -492,7 +492,7 @@
                                 listHTML += `
                                     <div class="admin-item" style="border-left-color: ${o.status === 'Delivered' ? '#2e7d32' : (o.status === 'Cancelled' ? '#ef4444' : '#ffc107')}">
                                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                            <span style="font-weight:800; font-size:12px; color:var(--primary);">ORDER ID: #${o.id.substring(1,7).toUpperCase()}</span>
+                                            <span style="font-weight:800; font-size:12px; color:var(--primary);">ORDER ID: #${o.order_id || o.id}</span>
                                             <span class="data-badge">${o.route}</span>
                                             <button class="btn-del" onclick="deleteOrder('${o.id}')">×</button>
                                         </div>
@@ -500,6 +500,8 @@
                                         
                                         <div style="font-size:11px; margin-bottom:10px; background:#f1f5f9; padding:10px; border-radius:10px;">
                                             <b>👤 Sender:</b> ${o.sender_name} (${o.sender_phone})<br>
+                                            
+<b>📱 Login Phone:</b> ${o.login_phone || 'N/A'}<br>
                                             <b>📦 Receiver:</b> ${o.receiver_name} (${o.receiver_phone})<br>
                                             <b>⏰ Dispatch Slot:</b> ${o.time_slot || 'N/A'}<br>
                                             <b>📍 Drop Point:</b> ${o.drop_point} | <b>💰 Fare:</b> ₹${o.total_fare}<br>
