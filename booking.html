@@ -576,6 +576,17 @@ const pollInterval = setInterval(async () => {
         commitOrderToFirebase(orderData, d.cf_order_id || orderId);
     }
 }, 4000);
+document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "visible" && !orderSaved) {
+        const res = await fetch("https://cashfree-order.samarth7924682.workers.dev/status?order_id=" + orderId);
+        const d = await res.json();
+        if (d.order_status === "PAID") {
+            orderSaved = true;
+            clearInterval(pollInterval);
+            commitOrderToFirebase(orderData, d.cf_order_id || orderId);
+        }
+    }
+});
                 } else {
                     alert("Payment initialize karne mein error: " + JSON.stringify(data));
                 }
