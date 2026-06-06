@@ -1,5 +1,42 @@
 const FIREBASE_URL = "https://sitapur-express-default-rtdb.asia-southeast1.firebasedatabase.app";
 
+async function sendTelegramNotification(order) {
+  try {
+    const tgRes = await fetch(`${FIREBASE_URL}/admin_settings/telegram.json`);
+    const tg = await tgRes.json();
+    if (!tg || !tg.bot_token || !tg.chat_id) return;
+
+    const msg = `🚨 *NAYA ORDER AAYA!*
+
+📦 *Order ID:* \`${order.order_id || 'N/A'}\`
+🛣️ *Route:* ${order.route || 'N/A'}
+⏰ *Time Slot:* ${order.time_slot || 'N/A'}
+
+👤 *Sender:*
+   • Name: ${order.sender_name || 'N/A'}
+   • Phone: ${order.sender_phone || 'N/A'}
+   • Pickup: ${order.pickup_address || 'N/A'}
+
+📬 *Receiver:*
+   • Name: ${order.receiver_name || 'N/A'}
+   • Phone: ${order.receiver_phone || 'N/A'}
+   • Drop: ${order.drop_point || order.delivery_address || 'N/A'}
+
+💰 *Amount:* ₹${order.total_fare || 'N/A'}
+✅ *Payment:* ${order.payment_status || 'N/A'}
+
+🔗 Admin: https://lkostpcouriers.in/admin.html`;
+
+    await fetch(`https://api.telegram.org/bot${tg.bot_token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: tg.chat_id, text: msg, parse_mode: 'Markdown' })
+    });
+  } catch (e) {
+    console.error("Telegram error:", e);
+  }
+}
+
 export default {
   async fetch(request) {
     const cors = {
@@ -12,7 +49,7 @@ export default {
 
     const url = new URL(request.url);
 
-    // ─── STATUS CHECK: Polling ke liye ───
+    // ─── STATUS CHECK ───
     if (url.pathname === "/status") {
       const orderId = url.searchParams.get("order_id");
       const res = await fetch(`https://api.cashfree.com/pg/orders/${orderId}`, {
@@ -49,6 +86,8 @@ export default {
             });
 
             await fetch(`${FIREBASE_URL}/pending_orders/${orderId}.json`, { method: "DELETE" });
+
+            await sendTelegramNotification({ ...pendingOrder, order_id: orderId });
           }
         }
         return new Response("ok", { headers: cors });
