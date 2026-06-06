@@ -515,6 +515,7 @@
         };
 
         async function triggerCashfreeCheckout(orderData) {
+        let paymentStarted = false;
             const loader = document.getElementById('loader');
             const loaderSub = document.getElementById('loaderSubText');
             loader.style.display = 'flex';
@@ -547,7 +548,7 @@ orderData.login_phone = localStorage.getItem("user_phone");
 localStorage.setItem("pending_order", JSON.stringify(orderData));
                     localStorage.setItem("user_logged_in", "true");
                     localStorage.setItem("user_phone", orderData.sender_phone);
-                    let paymentStarted = true;
+                    paymentStarted = true;
                     const cashfree = Cashfree({ mode: "production" });
 cashfree.checkout({
     paymentSessionId: data.payment_session_id,
