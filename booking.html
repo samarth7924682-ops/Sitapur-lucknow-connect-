@@ -597,7 +597,7 @@ const pollInterval = setInterval(async () => {
                     loaderSub.innerText = "Order Booked Successfully!";
                     localStorage.setItem("user_logged_in", "true");
 localStorage.setItem("user_phone", orderData.sender_phone);
-setTimeout(() => window.location.replace("index.html"), 1500);
+setTimeout(() => window.location.replace("https://www.lkostpcouriers.in/index.html"), 1500);
                 })
                 .catch((err) => {
                     alert("Firebase Database Error: " + err.message);
