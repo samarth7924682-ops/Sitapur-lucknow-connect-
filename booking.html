@@ -547,18 +547,35 @@ localStorage.setItem("pending_order", JSON.stringify(orderData));
                     localStorage.setItem("user_logged_in", "true");
                     localStorage.setItem("user_phone", orderData.sender_phone);
                     
-                    const cashfree = Cashfree({ mode: "production" });
+                    let orderSaved = false;
+
+const cashfree = Cashfree({ mode: "production" });
 cashfree.checkout({
     paymentSessionId: data.payment_session_id,
     redirectTarget: "_modal",
     onSuccess: function(resp) {
+        if (orderSaved) return;
+        orderSaved = true;
+        clearInterval(pollInterval);
         const txnId = resp?.transaction?.transactionId || resp?.order?.orderId || orderId;
         commitOrderToFirebase(orderData, txnId);
     },
     onFailure: function(resp) {
-        alert("Payment failed Try Again");
+        clearInterval(pollInterval);
+        alert("Payment failed. Dobara try karo.");
     }
 });
+
+const pollInterval = setInterval(async () => {
+    if (orderSaved) { clearInterval(pollInterval); return; }
+    const res = await fetch("https://cashfree-order.samarth7924682.workers.dev/status?order_id=" + orderId);
+    const d = await res.json();
+    if (d.order_status === "PAID") {
+        orderSaved = true;
+        clearInterval(pollInterval);
+        commitOrderToFirebase(orderData, d.cf_order_id || orderId);
+    }
+}, 4000);
                 } else {
                     alert("Payment initialize karne mein error: " + JSON.stringify(data));
                 }
