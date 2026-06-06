@@ -521,6 +521,8 @@
             loaderSub.innerText = "Payment initialize ho rahi hai...";
 
             const orderId = "ORD_" + Date.now();
+            orderData.order_id = orderId;
+orderData.login_phone = localStorage.getItem("user_phone");
             
             try {
                 const res = await fetch("https://cashfree-order.samarth7924682.workers.dev", {
@@ -540,17 +542,23 @@
                 
                 if (data.payment_session_id) {
                     // Order data localStorage mein save karo redirect ke liye
-                     orderData.order_id = orderId;
-     orderData.login_phone = localStorage.getItem("user_phone");
+                      
 localStorage.setItem("pending_order", JSON.stringify(orderData));
                     localStorage.setItem("user_logged_in", "true");
                     localStorage.setItem("user_phone", orderData.sender_phone);
                     
                     const cashfree = Cashfree({ mode: "production" });
-                    cashfree.checkout({
-                        paymentSessionId: data.payment_session_id,
-                        redirectTarget: "_modal"
-                    });
+cashfree.checkout({
+    paymentSessionId: data.payment_session_id,
+    redirectTarget: "_modal",
+    onSuccess: function(resp) {
+        const txnId = resp?.transaction?.transactionId || resp?.order?.orderId || orderId;
+        commitOrderToFirebase(orderData, txnId);
+    },
+    onFailure: function(resp) {
+        alert("Payment failed Try Again");
+    }
+});
                 } else {
                     alert("Payment initialize karne mein error: " + JSON.stringify(data));
                 }
@@ -567,7 +575,7 @@ localStorage.setItem("pending_order", JSON.stringify(orderData));
             loaderSub.innerText = "Payment Verified! Registering order matrix...";
             orderData.transaction_id = txnId;
 
-            db.ref('parcel_bookings').push(orderData)
+            db.ref('parcel_bookings/' + orderData.order_id).set(orderData)
                 .then(() => {
                     loaderSub.innerText = "Order Booked Successfully!";
                     localStorage.setItem("user_logged_in", "true");
