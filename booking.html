@@ -548,8 +548,7 @@ localStorage.setItem("pending_order", JSON.stringify(orderData));
                     localStorage.setItem("user_logged_in", "true");
                     localStorage.setItem("user_phone", orderData.sender_phone);
                     
-                   let paymentStarted = true;
-                   const cashfree = Cashfree({ mode: "production" });
+                    const cashfree = Cashfree({ mode: "production" });
 cashfree.checkout({
     paymentSessionId: data.payment_session_id,
     redirectTarget: "_modal",
@@ -561,9 +560,8 @@ cashfree.checkout({
     }
 });
 
-window.addEventListener("focus", async () => {
-    if (typeof orderId !== 'undefined' && paymentStarted) {
-        await new Promise(r => setTimeout(r, 3000));
+document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "visible" && typeof orderId !== 'undefined') {
         try {
             const snap = await db.ref('parcel_bookings/' + orderId).once('value');
             if (snap.val()) {

@@ -666,7 +666,7 @@
                                     <button class="dots-btn" onclick="toggleThreeDotsMenu(event, this)">⋮</button>
                                     <div class="dots-dropdown">
                                         ${changeAddressHTML}
-                                        <button onclick="viewPaymentStatusAlert('${payStatusMessage}', '${o.id.substring(1,7).toUpperCase()}', '${plainTxnString}')"><i class="fas fa-credit-card"></i> View Payment Status</button>
+                                        <button onclick="viewPaymentStatusAlert('${payStatusMessage}', '${o.order_id || o.id}', '${plainTxnString}')"><i class="fas fa-credit-card"></i> View Payment Status</button>
                                     </div>
                                 </div>`;
 
@@ -719,7 +719,7 @@
                                     <div class="order-details-panel">
                                         ${approvalNoticeHTML}
                                         <div class="details-header-flex">
-                                            <div><span class="info-label">Order Reference System</span><div style="font-weight:800; font-size:11px; color:var(--text-muted);">ID: #${o.id.substring(1,7).toUpperCase()}</div></div>
+                                            <div><span class="info-label">Order Reference System</span><div style="font-weight:800; font-size:11px; color:var(--text-muted);">ID: #${o.order_id || o.id}</div></div>
                                             ${dropdownMenuBlockHTML}
                                         </div>
                                         <span class="info-label">Current Stage Status</span><div style="font-size:12px; ${statusColorStyle} text-transform:uppercase; margin-bottom:8px;"><i class="fas ${statusIconClass}"></i> ${o.status || 'Pending'}</div>
