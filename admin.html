@@ -577,11 +577,14 @@
                     if (!reqData) return alert("Error: Data mismatch sequence!");
 
                     db.ref('parcel_bookings/' + orderId).update({
-                        receiver_phone: reqData.receiver_phone,
-                        delivery_type: reqData.delivery_type,
-                        drop_point: reqData.drop_point,
-                        delivery_address: reqData.delivery_address
-                    }).then(() => {
+    sender_name: reqData.sender_name,
+    sender_phone: reqData.sender_phone,
+    receiver_name: reqData.receiver_name,
+    receiver_phone: reqData.receiver_phone,
+    delivery_type: reqData.delivery_type,
+    drop_point: reqData.drop_point,
+    delivery_address: reqData.delivery_address
+}).then(() => {
                         db.ref('modification_requests/' + orderId).remove()
                         .then(() => alert("🟢 Details updated successfully everywhere!"));
                     }).catch(err => alert("Operation error: " + err.message));

@@ -133,7 +133,7 @@
 
                 // LOCK SYSTEM
                 let currentStatus = (originalOrderData.status || "Pending").trim().toLowerCase();
-                if (currentStatus === "reached at hub" || currentStatus === "out for delivery") {
+                if (currentStatus === "reached at hub" || currentStatus === "out for delivery"|| currentStatus === "delivered") {
                     document.getElementById('editableBody').style.display = "none";
                     document.getElementById('lockView').style.display = "block";
                     document.getElementById('lockViewMsg').innerText = `Bhai, aapka parcel status abhi "${originalOrderData.status}" hai. Ab details self-change nahi ho sakti.`;
@@ -258,7 +258,7 @@
 
             // DUAL GUARD STATUS CHECKS
             let currentStatus = (originalOrderData.status || "Pending").trim().toLowerCase();
-            if (currentStatus === "reached at hub" || currentStatus === "out for delivery") {
+            if (currentStatus === "reached at hub" || currentStatus === "out for delivery"|| currentStatus === "delivered") {
                 alert("❌ Request Failed! Admin ne parcel status badal diya hai, ab modification lock ho chuka hai.");
                 window.location.reload();
                 return;
