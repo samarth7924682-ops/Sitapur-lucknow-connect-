@@ -563,7 +563,7 @@ cashfree.checkout({
 
 document.addEventListener("visibilitychange", async () => {
 if (document.visibilityState === "visible" && typeof orderId !== 'undefined' && paymentStarted) {
-    await new Promise(r => setTimeout(r, 4000));
+    await new Promise(r => setTimeout(r, 0));
    
         try {
             const snap = await db.ref('parcel_bookings/' + orderId).once('value');
