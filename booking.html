@@ -599,7 +599,7 @@ if (document.visibilityState === "visible" && !paymentStarted) {
                     loaderSub.innerText = "Order Booked Successfully!";
                     localStorage.setItem("user_logged_in", "true");
 localStorage.setItem("user_phone", orderData.sender_phone);
-setTimeout(() => window.location.replace("https://www.lkostpcouriers.in/success.html?order_id=" + orderData.order_id);
+setTimeout(() => window.location.replace("https://www.lkostpcouriers.in/success.html?order_id=" + orderData.order_id), 1000);
                 })
                 .catch((err) => {
                     alert("Firebase Database Error: " + err.message);
