@@ -554,16 +554,19 @@ cashfree.checkout({
     paymentSessionId: data.payment_session_id,
     redirectTarget: "_modal",
     onSuccess: function(resp) {
-        window.location.replace("https://www.lkostpcouriers.in/success.html?order_id=" + orderId);
-    },
+    const txnId = resp?.transaction?.transactionId || resp?.order?.orderId || "TXN_" + Date.now();
+    commitOrderToFirebase(orderData, txnId);
+},
     onFailure: function(resp) {
         window.location.replace("https://www.lkostpcouriers.in/fail.html");
     }
 });
 
 document.addEventListener("visibilitychange", async () => {
-if (document.visibilityState === "visible" && typeof orderId !== 'undefined' && paymentStarted) {
-    await new Promise(r => setTimeout(r, 0));
+if (document.visibilityState === "visible" && !paymentStarted) {
+    window.location.replace('https://www.lkostpcouriers.in/index.html');
+} else if (document.visibilityState === "visible" && paymentStarted) {
+    await new Promise(r => setTimeout(r, 1000));
    
         try {
             const snap = await db.ref('parcel_bookings/' + orderId).once('value');
@@ -596,7 +599,7 @@ if (document.visibilityState === "visible" && typeof orderId !== 'undefined' && 
                     loaderSub.innerText = "Order Booked Successfully!";
                     localStorage.setItem("user_logged_in", "true");
 localStorage.setItem("user_phone", orderData.sender_phone);
-setTimeout(() => window.location.replace("https://www.lkostpcouriers.in/index.html"), 1500);
+setTimeout(() => window.location.replace("https://www.lkostpcouriers.in/success.html?order_id=" + orderData.order_id);
                 })
                 .catch((err) => {
                     alert("Firebase Database Error: " + err.message);
