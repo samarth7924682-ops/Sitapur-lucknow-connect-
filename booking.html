@@ -485,7 +485,11 @@
 
             // GUEST SAFE COMPILER: Agar log-in user nahi hai toh backup variables chalenge
             const finalSavedUid = currentUser ? currentUser.uid : "GUEST";
-            const finalSavedPhone = localStorage.getItem("user_phone") || senderPhone;
+            const rawLP = localStorage.getItem("user_phone") || "";
+let finalSavedPhone = rawLP.replace(/[\s\-\+]/g, "");
+if(finalSavedPhone.startsWith("91") && finalSavedPhone.length === 12) finalSavedPhone = finalSavedPhone.slice(2);
+if(finalSavedPhone.startsWith("0") && finalSavedPhone.length === 11) finalSavedPhone = finalSavedPhone.slice(1);
+if(!finalSavedPhone) finalSavedPhone = senderPhone;
 
             const finalOrderPayload = {
                 user_uid: finalSavedUid, 
@@ -524,11 +528,7 @@
             const counterSnap = await db.ref('order_counter').transaction(val => (val || 5000) + 1);
 const orderId = "ORD_" + counterSnap.snapshot.val();
             orderData.order_id = orderId;
-const rawPhone = localStorage.getItem("user_phone") || "";
-let np = rawPhone.replace(/[\s\-\+]/g, "");
-if(np.startsWith("91") && np.length === 12) np = np.slice(2);
-if(np.startsWith("0") && np.length === 11) np = np.slice(1);
-orderData.login_phone = np;
+
             
             try {
                 const res = await fetch("https://cashfree-order.samarth7924682.workers.dev", {
@@ -551,7 +551,7 @@ orderData.login_phone = np;
                       
 localStorage.setItem("pending_order", JSON.stringify(orderData));
                     localStorage.setItem("user_logged_in", "true");
-                    localStorage.setItem("user_phone", orderData.sender_phone);
+                    
                     paymentStarted = true;
                     const cashfree = Cashfree({ mode: "production" });
 cashfree.checkout({
@@ -602,7 +602,7 @@ if (document.visibilityState === "visible" && !paymentStarted) {
                 .then(() => {
                     loaderSub.innerText = "Order Booked Successfully!";
                     localStorage.setItem("user_logged_in", "true");
-localStorage.setItem("user_phone", orderData.sender_phone);
+
 setTimeout(() => window.location.replace("https://www.lkostpcouriers.in/success.html?order_id=" + orderData.order_id), 1000);
                 })
                 .catch((err) => {
