@@ -438,11 +438,17 @@
             hours = hours ? hours : 12; 
             return `${formattedDate}, ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
         }
+        function normalizePhone(phone) {
+    let clean = String(phone).replace(/[\s\-\+]/g, "").trim();
+    if (clean.startsWith("91") && clean.length === 12) clean = clean.slice(2);
+    if (clean.startsWith("0") && clean.length === 11) clean = clean.slice(1);
+    return clean;
+}
 
         // ⚡ CONDITIONAL RENDER DROP ENGINE
         function checkUserAuthEngine() {
             
-            const loggedInUserPhone = localStorage.getItem("user_phone");
+            const loggedInUserPhone = normalizePhone(localStorage.getItem("user_phone") || "");
             const isLogged = localStorage.getItem("user_logged_in");
             const dropdown = document.getElementById('profileDropdown');
 
@@ -609,8 +615,8 @@ fetch("https://api.imgbb.com/1/upload?key=fc55ab864d0bf2aaf95a602a263080ef", {
         }
 
         function loadOrdersByPhone(loggedInUserPhone) {
-            const cleanPhone = loggedInUserPhone.trim();
-            const standardPhone = cleanPhone.replace("+91", "");
+            const cleanPhone = normalizePhone(loggedInUserPhone);
+const standardPhone = cleanPhone;
 
             db.ref('parcel_bookings').on('value', (bookingSnapshot) => {
                 db.ref('modification_requests').once('value').then((requestSnapshot) => {
@@ -628,8 +634,8 @@ fetch("https://api.imgbb.com/1/upload?key=fc55ab864d0bf2aaf95a602a263080ef", {
                         const orders = Object.keys(bookingsData).map(key => ({ id: key, ...bookingsData[key] })).reverse();
                         
                         orders.forEach(o => {
-                            const matchesLoginPhone = o.login_phone && (String(o.login_phone).includes(standardPhone) || String(o.login_phone) === cleanPhone);
-                            const matchesSenderPhone = o.sender_phone && (String(o.sender_phone).includes(standardPhone) || String(o.sender_phone) === cleanPhone);
+                            const matchesLoginPhone = o.login_phone && normalizePhone(o.login_phone) === cleanPhone;
+const matchesSenderPhone = o.sender_phone && normalizePhone(o.sender_phone) === cleanPhone
 
                             if (!matchesLoginPhone && !matchesSenderPhone) return;
 

@@ -485,7 +485,7 @@
 
             // GUEST SAFE COMPILER: Agar log-in user nahi hai toh backup variables chalenge
             const finalSavedUid = currentUser ? currentUser.uid : "GUEST";
-            const finalSavedPhone = currentUser ? (currentUser.phoneNumber || senderPhone) : senderPhone;
+            const finalSavedPhone = localStorage.getItem("user_phone") || senderPhone;
 
             const finalOrderPayload = {
                 user_uid: finalSavedUid, 
@@ -524,7 +524,11 @@
             const counterSnap = await db.ref('order_counter').transaction(val => (val || 5000) + 1);
 const orderId = "ORD_" + counterSnap.snapshot.val();
             orderData.order_id = orderId;
-orderData.login_phone = localStorage.getItem("user_phone");
+const rawPhone = localStorage.getItem("user_phone") || "";
+let np = rawPhone.replace(/[\s\-\+]/g, "");
+if(np.startsWith("91") && np.length === 12) np = np.slice(2);
+if(np.startsWith("0") && np.length === 11) np = np.slice(1);
+orderData.login_phone = np;
             
             try {
                 const res = await fetch("https://cashfree-order.samarth7924682.workers.dev", {
