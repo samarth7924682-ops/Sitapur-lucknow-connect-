@@ -42,9 +42,9 @@
         }
         :root { --primary: #0c1c3a; --gold: #ffc107; --bg: #f4f7f6; --white: #ffffff; --red: #e74c3c; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: var(--bg); padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        body { background: var(--bg); padding: 15px; display: flex; justify-content: center; align-items:  flex-start; min-height: 100vh; }
         
-        .card { background: var(--white); width: 100%; max-width: 450px; padding: 25px 20px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .card { background: var(--white); width: 100%; padding: 25px 20px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         h2 { text-align: center; color: var(--primary); margin-bottom: 20px; font-weight: 800; font-size: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
         label { font-size: 11px; font-weight: 800; color: #555; margin-bottom: 6px; display: block; padding-left: 5px; text-transform: uppercase; margin-top: 12px; }
         input, select { width: 100%; padding: 15px; margin-bottom: 12px; border: 1.5px solid #f0f0f0; border-radius: 18px; outline: none; font-size: 13px; font-weight: 600; background: #fafafa; transition: 0.3s; color: var(--primary); }
@@ -80,9 +80,33 @@
     z-index: 9999 !important;
     border: none !important;
 }
+.csel-wrap{position:relative;margin-bottom:12px;}
+.csel-btn{width:100%;padding:15px;border:1.5px solid #f0f0f0;border-radius:18px;background:#fafafa;font-size:13px;font-weight:600;color:#0c1c3a;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.csel-btn:after{content:"›";font-size:20px;font-weight:900;color:#0c1c3a;transform:rotate(90deg);display:inline-block;}
+.csel-dropdown{display:none;position:absolute;top:calc(100%+4px);left:0;width:100%;background:#fff;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,0.15);z-index:9999;overflow:hidden;max-height:260px;overflow-y:auto;}
+.csel-dropdown.open{display:block;}
+.csel-item{padding:14px 18px;font-size:13px;font-weight:600;color:#0c1c3a;border-bottom:1px solid #f5f5f5;cursor:pointer;}
+.csel-item:last-child{border-bottom:none;}
+.csel-item.selected{background:#fff8e1;}
+.v-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:99999;justify-content:center;align-items:center;}
+.v-overlay.show{display:flex;}
+.v-box{background:#fff;width:85%;max-width:320px;border-radius:24px;padding:30px 20px 22px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.2);animation:vpop 0.3s cubic-bezier(0.175,0.885,0.32,1.275);}
+@keyframes vpop{from{transform:scale(0.75);opacity:0;}to{transform:scale(1);opacity:1;}}
+.v-icon{font-size:42px;margin-bottom:12px;}
+.v-title{font-size:14px;font-weight:800;color:#0c1c3a;text-transform:uppercase;margin-bottom:8px;}
+.v-msg{font-size:12px;color:#64748b;font-weight:600;line-height:1.6;margin-bottom:20px;}
+.v-btn{background:#0c1c3a;color:#ffc107;border:none;padding:13px 40px;border-radius:14px;font-weight:800;font-size:13px;cursor:pointer;text-transform:uppercase;}
     </style>
 </head>
 <body>
+    <div class="v-overlay" id="vOverlay">
+  <div class="v-box">
+    <div class="v-icon" id="vIcon">⚠️</div>
+    <div class="v-title" id="vTitle">Error</div>
+    <div class="v-msg" id="vMsg"></div>
+    <button class="v-btn" onclick="document.getElementById('vOverlay').classList.remove('show')">OK</button>
+  </div>
+</div>
     <div id="loader">
         <h3 style="font-weight: 800; text-transform: uppercase;">Processing Order...</h3>
         <p id="loaderSubText" style="font-size:11px; margin-top:10px; color: var(--gold); font-weight: 600;">Loading Photo...</p>
@@ -144,7 +168,7 @@
 
             <div id="dropSection">
                 <label id="dropLabel">DROP POINT / AREA</label>
-                <select id="dropWarehouseSelect" onchange="calculateTotal()" required></select>
+                <select id="dropWarehouseSelect" required></select>
                 
                 <div id="amazonAddressBlock" style="display: none;">
                     <input type="text" id="dFull" placeholder="Flat, House no., Building, Company, Apartment">
@@ -172,20 +196,21 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const auth = firebase.auth(); 
+        const auth = firebase.auth ? firebase.auth() : null;
         
         const IMGBB_API_KEY = "fc55ab864d0bf2aaf95a602a263080ef"; 
 
         let currentRoute = 'STP ➔ LKO';
         let deliveryMode = 'station';
         let parcelPhotos = []; 
+        let preUploadedUrls = {};
         let globalTimingSettings = null; 
         
         // GLOBAL VARIABLE: Isme Auth State ka user save hoga
         let currentUser = null;
 
         // LOGIN RESTRICTION REMOVED: Ab bina login ke bhi form khulega aur chalaega
-        auth.onAuthStateChanged((user) => {
+        if(auth) auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
                 console.log("Sitapur Express Auth Connected User:", user.uid);
@@ -200,7 +225,7 @@
             if (!file) return;
 
             if (parcelPhotos.length >= 10) {
-                alert("Maximum 10 photos allowed!");
+                vAlert("Photo Limit","Maximum 10 photos allowed!");            
                 this.value = "";
                 return;
             }
@@ -213,11 +238,15 @@
             reader.onload = function(e) {
                 parcelPhotos.push(e.target.result); 
                 renderPhotoGrid();
-                document.getElementById('parcelImg').value = ""; 
+               const photoIndex = parcelPhotos.length - 1;
+uploadToImgBB(parcelPhotos[photoIndex]).then(url => {
+    if(url) preUploadedUrls[photoIndex] = url;
+});
+ document.getElementById('parcelImg').value = ""; 
                 loader.style.display = 'none';
             };
             reader.onerror = function() {
-                alert("Browser FileReader execution failed!");
+                vAlert("Upload Error","Photo load nahi ho payi, dobara try karo!");
                 loader.style.display = 'none';
             };
             reader.readAsDataURL(file);
@@ -305,6 +334,8 @@
             const dSelect = document.getElementById('dropWarehouseSelect');
             const amazonBlock = document.getElementById('amazonAddressBlock');
             const submitBtn = document.getElementById('submitBtn');
+            const pWrap = document.getElementById('pWarehouseSelect_wrap');
+const dWrap = document.getElementById('dropWarehouseSelect_wrap');
 
             submitBtn.disabled = false;
             submitBtn.style.opacity = '1';
@@ -316,17 +347,23 @@
                 pInput.required = true;
                 pSelect.style.display = 'none';
                 pSelect.required = false;
+                if(pWrap) pWrap.style.display = 'none';
 
                 if (deliveryMode === 'home') {
                     document.getElementById('dropLabel').innerText = "DROP POINT / AREA";
-                    dSelect.style.display = 'none';
+                    
                     amazonBlock.style.display = 'none';
                     submitBtn.disabled = true;
                     submitBtn.style.opacity = '0.5';
                 } else {
                     document.getElementById('dropLabel').innerText = "SELECT LUCKNOW DROP STATION";
                     amazonBlock.style.display = 'none';
-                    dSelect.style.display = 'block';
+                    
+if(dWrap) dWrap.style.display = 'none';
+                    
+                    
+                    
+if(dWrap) dWrap.style.display = 'block';
                     fetchWarehouses('STP ➔ LKO', 'dropWarehouseSelect', ['Charbagh Station', 'Daliganj Junction', 'Badshahnagar Warehouse']);
                 }
             } 
@@ -338,16 +375,17 @@
                 pSelect.required = true;
                 
                 fetchWarehouses('STP ➔ LKO', 'pWarehouseSelect', ['Charbagh Station', 'Daliganj Junction', 'Badshahnagar Warehouse']);
+                if(pWrap) pWrap.style.display = 'block';
 
                 if (deliveryMode === 'home') {
                     document.getElementById('dropLabel').innerText = "DELIVERY AREA & ADDRESS (SITAPUR)";
-                    dSelect.style.display = 'none';
+                    if(dWrap) dWrap.style.display = 'none';
                     amazonBlock.style.display = 'block'; 
                     document.getElementById('dFull').required = true;
                 } else {
                     document.getElementById('dropLabel').innerText = "SELECT SITAPUR DROP STATION";
                     amazonBlock.style.display = 'none'; 
-                    dSelect.style.display = 'block';
+                    if(dWrap) dWrap.style.display = 'block';
                     fetchWarehouses('LKO ➔ STP', 'dropWarehouseSelect', ['Sitapur Junction (STP)', 'Sitapur City Jn Hub']);
                     document.getElementById('dFull').required = false;
                 }
@@ -383,7 +421,7 @@
                 const time = selectedOption.value;
                 const routeTxt = currentRoute === 'STP ➔ LKO' ? 'Sitapur' : 'Lucknow';
                 const destTxt = currentRoute === 'STP ➔ LKO' ? 'Lucknow' : 'Sitapur';
-                timingBox.innerHTML = `🚀 Dispatch from ${routeTxt}: <b>${time}</b><br>📍 Reach ${destTxt}: <b>~3 Hours later</b>`;
+                timingBox.innerHTML = `🚀 Dispatch from ${routeTxt}: <b>${time}</b><br>📍 Reach ${destTxt}: <b>~5 Hours later</b>`;
                 timingBox.style.display = "block";
             }
         }
@@ -399,14 +437,65 @@
             let total = weightPrice; 
             
             if (currentRoute === 'LKO ➔ STP' && deliveryMode === 'home') {
-                total += 99;
-                document.getElementById('priceLabel').innerText = `Base Fare + Sitapur Doorstep Delivery (+₹99)`;
+                total += 49;
+                document.getElementById('priceLabel').innerText = `Base Fare + Sitapur Doorstep Delivery (+₹49)`;
             } else {
                 document.getElementById('priceLabel').innerText = `Fixed Station Cargo Fare`;
             }
             document.getElementById('totalPr').innerText = total;
         }
+        function makeCustomSelect(selectId, onChangeFn) {
+    const sel = document.getElementById(selectId);
+    if(!sel) return;
+    if(document.getElementById(selectId+'_wrap')) return;
+    sel.style.display = 'none';
+    const wrap = document.createElement('div');
+    wrap.className = 'csel-wrap';
+    wrap.id = selectId+'_wrap';
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+    const btn = document.createElement('div');
+    btn.className = 'csel-btn';
+    btn.id = selectId+'_btn';
+    const drop = document.createElement('div');
+    drop.className = 'csel-dropdown';
+    drop.id = selectId+'_drop';
+    wrap.appendChild(btn);
+    wrap.appendChild(drop);
+    btn.onclick = (e) => { 
+    e.stopPropagation(); 
+    document.querySelectorAll('.csel-dropdown.open').forEach(d => { if(d !== drop) d.classList.remove('open'); });
+    drop.classList.toggle('open'); 
+};
+    document.addEventListener('click', () => drop.classList.remove('open'));
+    function syncOptions() {
+        const opts = Array.from(sel.options);
+        if(!opts.length) return;
+        drop.innerHTML = opts.map((o,i) =>
+            `<div class="csel-item${i===sel.selectedIndex?' selected':''}" data-val="${o.value}" data-idx="${i}">${o.text}</div>`
+        ).join('');
+        btn.innerHTML = `<span>${sel.options[sel.selectedIndex]?.text||'Select...'}</span>`;
+        drop.querySelectorAll('.csel-item').forEach(item => {
+            item.onclick = (e) => {
+                e.stopPropagation();
+                sel.selectedIndex = parseInt(item.dataset.idx);
+                btn.innerHTML = `<span>${item.textContent}</span>`;
+                drop.querySelectorAll('.csel-item').forEach(x => x.classList.remove('selected'));
+                item.classList.add('selected');
+                drop.classList.remove('open');
+                if(onChangeFn) onChangeFn();
+            };
+        });
+    }
+    new MutationObserver(syncOptions).observe(sel, {childList:true});
+    syncOptions();
+}
 
+function vAlert(title, msg) {
+    document.getElementById('vTitle').textContent = title;
+    document.getElementById('vMsg').textContent = msg;
+    document.getElementById('vOverlay').classList.add('show');
+}
         async function uploadToImgBB(base64Data) {
             const formData = new FormData();
             formData.append("image", base64Data.split(",")[1]);
@@ -430,15 +519,29 @@
             const senderPhone = document.getElementById('sPhone').value.trim();
             const receiverName = document.getElementById('n').value;
             const receiverPhone = document.getElementById('p').value.trim();
+            if(!senderName.trim() && !senderPhone && !receiverName.trim() && !receiverPhone) {
+    vAlert("Fill Details","Please fill all the details first!"); return;
+}
+            if(!senderName.trim()) { vAlert("Sender Name","Enter Sender Name!"); return; }
+if(!senderPhone) { vAlert("Sender Number","Enter Sender Number!"); return; }
+if(!receiverName.trim()) { vAlert("Receiver Name","Enter Receiver Name!"); return; }
+if(!receiverPhone) { vAlert("Receiver Number","Enter Receiver Number!"); return; }
+            const sp = senderPhone.replace(/[\s\-\+]/g,"");
+const spClean = sp.startsWith("91")&&sp.length===12?sp.slice(2):sp.startsWith("0")&&sp.length===11?sp.slice(1):sp;
+const rp = receiverPhone.replace(/[\s\-\+]/g,"");
+const rpClean = rp.startsWith("91")&&rp.length===12?rp.slice(2):rp.startsWith("0")&&rp.length===11?rp.slice(1):rp;
+const allSame=(n)=>/^(\d)\1+$/.test(n);
+if(spClean.length!==10||!/^[6-9]/.test(spClean)||allSame(spClean)){vAlert("Sender Number","Wrong Sender Number!");return;}
+if(rpClean.length!==10||!/^[6-9]/.test(rpClean)||allSame(rpClean)){vAlert("Receiver Number","Wrong Receiver Number!");return;}
 
-            if(!senderName || !senderPhone || !receiverName || !receiverPhone) {
-                return alert("Bhai, pehle Sender aur Receiver ki saari details bharo!");
-            }
-            if(parcelPhotos.length === 0) return alert("Bhai, kam se kam 1 photo toh upload karo!");
-            
+          
+            if(parcelPhotos.length === 0) { vAlert("Photo Required","UPLOAD PHOTO "); return; }
+           const earlyPickup = document.getElementById('pLoc') ? document.getElementById('pLoc').value.trim() : "";
+if(currentRoute === 'STP ➔ LKO' && !earlyPickup) {
+    vAlert("Pickup Missing","PICKUP ADDRESS MISSING"); return;
+} 
             const selectedTime = document.getElementById('timeSlot').value;
-            if(!selectedTime) return alert("Timing select karna zaroori hai!");
-
+            if(!selectedTime) { vAlert("Timing Missing","SELECT TIMING"); return; }
             const totalFare = Number(document.getElementById('totalPr').innerText || 0);
             const loader = document.getElementById('loader');
             const loaderSub = document.getElementById('loaderSubText');
@@ -446,14 +549,15 @@
             
             let uploadedUrls = [];
             for (let i = 0; i < parcelPhotos.length; i++) {
-                loaderSub.innerText = `Uploading Photo ${i+1} of ${parcelPhotos.length}...`;
-                const url = await uploadToImgBB(parcelPhotos[i]);
-                if(url) uploadedUrls.push(url);
-                else {
-                    loader.style.display = 'none';
-                    return alert("Photo upload fail ho gayi!");
-                }
-            }
+    if(preUploadedUrls[i]) {
+        uploadedUrls.push(preUploadedUrls[i]);
+    } else {
+        loaderSub.innerText = `Uploading Photo ${i+1} of ${parcelPhotos.length}...`;
+        const url = await uploadToImgBB(parcelPhotos[i]);
+        if(url) uploadedUrls.push(url);
+        else { loader.style.display = 'none'; vAlert("Upload Failed","Photo upload fail ho gayi!"); return; }
+    }
+}
 
             loader.style.display = 'none';
 
@@ -478,9 +582,11 @@
                     const dropEl = document.getElementById('dropWarehouseSelect');
                     calculatedDropPoint = dropEl ? dropEl.options[dropEl.selectedIndex].text : "N/A";
                 }
-            }
-
-            const trackingOtpToken = Math.floor(1000 + Math.random() * 9000).toString();
+   }
+   if(currentRoute === 'STP ➔ LKO' && !calculatedPickupAddress.trim()) {
+    vAlert("Pickup Missing","Apna pickup address daalo!"); return;
+}
+ const trackingOtpToken = Math.floor(1000 + Math.random() * 9000).toString();
             const currentNumericTimestamp = new Date().getTime();
 
             // GUEST SAFE COMPILER: Agar log-in user nahi hai toh backup variables chalenge
@@ -583,11 +689,11 @@ if (document.visibilityState === "visible" && !paymentStarted) {
     }
 });
                 } else {
-                    alert("Payment initialize karne mein error: " + JSON.stringify(data));
+                    vAlert("Payment Error","Payment shuru nahi ho payi. Dobara try karo!");
                 }
             } catch(err) {
                 loader.style.display = 'none';
-                alert("Payment error: " + err.message);
+                vAlert("Payment Error","Kuch gadbad ho gayi. Dobara try karo!");
             }
         }
 
@@ -606,8 +712,8 @@ if (document.visibilityState === "visible" && !paymentStarted) {
 setTimeout(() => window.location.replace("https://www.lkostpcouriers.in/success.html?order_id=" + orderData.order_id), 1000);
                 })
                 .catch((err) => {
-                    alert("Firebase Database Error: " + err.message);
-                    loader.style.display = 'none';
+                    vAlert("Order Error","Order save nahi hua. Call us at 6391132024!");
+loader.style.display = 'none';
                 });
         }
 
@@ -631,6 +737,9 @@ setTimeout(() => window.location.replace("https://www.lkostpcouriers.in/success.
                 }
                 calculateTotal();
             });
+makeCustomSelect('timeSlot', updateTimingBox);
+makeCustomSelect('itemWeight', calculateTotal);
+makeCustomSelect('dropWarehouseSelect', calculateTotal);
 
             db.ref('admin_settings/timing').on('value', (snapshot) => {
                 globalTimingSettings = snapshot.val();
