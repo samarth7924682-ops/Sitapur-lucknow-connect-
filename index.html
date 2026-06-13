@@ -486,7 +486,7 @@ loadOrdersByPhone(loggedInUserPhone);
 
         // ⚡ PROFILE PICTURE FLOW FROM FIREBASE
         function fetchUserProfilePic(phone) {
-            const cleanPhone = phone.replace("+", "").trim();
+            const cleanPhone = normalizePhone(phone);
             db.ref('users/' + cleanPhone).on('value', (snapshot) => {
                 if(snapshot.exists() && snapshot.val().profile_pic) {
                     document.getElementById('userProfilePic').src = snapshot.val().profile_pic;
