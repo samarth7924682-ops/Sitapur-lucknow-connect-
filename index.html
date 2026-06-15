@@ -560,7 +560,7 @@ fetch("https://api.imgbb.com/1/upload?key=fc55ab864d0bf2aaf95a602a263080ef", {
         function toggleClientOrder(element) { element.parentElement.classList.toggle('active'); }
         function openClientPreview(src) { document.getElementById('previewImg').src = src; document.getElementById('globalImgModal').style.display = 'flex'; }
         function viewPaymentStatusAlert(gatewayMsg, orderIdTxt, txIdNum) { alert(`💳 PAYMENT STATUS SUMMARY\n\n📌 Order Ref: #${orderIdTxt}\n💰 Status: ${gatewayMsg.replace('🟢 ', '').replace('⚠️ ', '')}\n🔑 ${txIdNum}`); }
-        function openRateSheet() { document.getElementById('rateSheetOverlay').style.display = 'block'; setTimeout(() => { document.getElementById('rateSheetOverlay').classList.add('open'); }, 10); }
+        function openRateSheet() { listenToRates(); document.getElementById('rateSheetOverlay').style.display = 'block'; setTimeout(() => { document.getElementById('rateSheetOverlay').classList.add('open'); }, 10); }
         function closeRateSheet() { document.getElementById('rateSheetOverlay').classList.remove('open'); setTimeout(() => { document.getElementById('rateSheetOverlay').style.display = 'none'; }, 300); }
         function saveTargetId(id) { localStorage.setItem('modifying_id', id); }
 
