@@ -580,39 +580,36 @@ fetch("https://api.imgbb.com/1/upload?key=fc55ab864d0bf2aaf95a602a263080ef", {
             setTimeout(() => { window.location.href = "index.html"; }, 800);
         }
 
-        function listenToRates() {
-            db.ref('rates_list').on('value', (snapshot) => {
-                const container = document.getElementById('rateSheetContent');
-                let htmlContent = "";
-                if(snapshot.exists()) {
-                    snapshot.forEach((child) => {
-                        const item = child.val();
-                        htmlContent += `
-                            <div class="rate-card">
-                                <div class="rate-info-left"><div class="rate-icon-box"><i class="fas ${item.icon || 'fa-box-open'}"></i></div>
-                                <div><span class="rate-item-name">${item.name || 'Parcel'}</span><small class="rate-item-desc">${item.desc || 'Standard parcel charges'}</small></div></div>
-                                <div class="rate-price-badge">₹${item.rate || '0'}</div>
-                            </div>`;
-                    });
-                    container.innerHTML = htmlContent;
-                } else {
-                    const sampleRates = [
-                        { name: "Small Box", desc: "Up to 1KG weights layout", rate: "199", icon: "fa-box" },
-                        { name: "Medium Sack / Clothes Sack", desc: "Weight 1KG - 3KG stock parcel", rate: "249", icon: "fa-sack-large" },
-                        { name: "For Medical Pickup Home delivery Included", desc: "medical reports and medicines", rate: "249", icon: "fa-boxes" }
-                    ];
-                    sampleRates.forEach(item => {
-                        htmlContent += `
-                            <div class="rate-card">
-                                <div class="rate-info-left"><div class="rate-icon-box"><i class="fas ${item.icon}"></i></div>
-                                <div><span class="rate-item-name">${item.name}</span><small class="rate-item-desc">${item.desc}</small></div></div>
-                                <div class="rate-price-badge">₹${item.rate}</div>
-                            </div>`;
-                    });
-                    container.innerHTML = htmlContent;
-                }
+       function listenToRates() {
+    db.ref('admin_settings/rates').on('value', (snapshot) => {
+        const container = document.getElementById('rateSheetContent');
+        let htmlContent = "";
+        const data = snapshot.val();
+        if (data) {
+            Object.values(data).forEach(item => {
+                const isMedical = item.name && item.name.toLowerCase().includes('medical');
+                const iconClass = isMedical ? 'fa-prescription-bottle-alt' : (item.icon || 'fa-box-open');
+                const iconStyle = isMedical ? 'background:#e8f5e9;color:#2e7d32;' : '';
+                htmlContent += `
+                    <div class="rate-card">
+                        <div class="rate-info-left">
+                            <div class="rate-icon-box" style="${iconStyle}">
+                                <i class="fas ${iconClass}"></i>
+                            </div>
+                            <div>
+                                <span class="rate-item-name">${item.name || 'Parcel'}</span>
+                                <small class="rate-item-desc">${item.desc || 'Standard parcel charges'}</small>
+                            </div>
+                        </div>
+                        <div class="rate-price-badge">₹${item.price || item.rate || '0'}</div>
+                    </div>`;
             });
+            container.innerHTML = htmlContent;
+        } else {
+            container.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;">No rates found.</div>';
         }
+    });
+}
 
         function loadOrdersByPhone(loggedInUserPhone) {
             const cleanPhone = normalizePhone(loggedInUserPhone);
@@ -780,4 +777,5 @@ const matchesSenderPhone = o.sender_phone && normalizePhone(o.sender_phone) === 
 
 </body>
 </html>
+            
             
