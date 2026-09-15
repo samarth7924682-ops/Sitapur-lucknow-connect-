@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Payment & Match Unlock | Predict Pro</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Cashfree V3 SDK -->
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #121418; --card-bg: #1e222b; --gold: #ffb703; --text: #ffffff; --gray: #94a3b8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background: var(--card-bg); width: 100%; max-width: 400px; padding: 30px 20px; border-radius: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,183,3,0.1); }
+        .spinner { width: 60px; height: 60px; border: 6px solid rgba(255,183,3,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        h2 { font-family: 'Oswald', sans-serif; color: var(--gold); font-size: 22px; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase; }
+        p { font-size: 13px; color: var(--gray); line-height: 1.6; margin-bottom: 25px; }
+        .btn { background: var(--gold); color: #000; border: none; width: 100%; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="spinner" id="spinnerIcon"></div>
+        <h2 id="statusTitle">INITIALIZING GATEWAY</h2>
+        <p id="statusText">Establishing secure connection with Cashfree payment server on approved domain...</p>
+        <button id="retryBtn" class="btn" style="display: none;" onclick="initPayment()">Try Again</button>
+    </div>
+
+    <script>
+        // URL parameters se data utha rahe hain jo Netlify se pass hua hai
+        const urlParams = new URLSearchParams(window.location.search);
+        const matchId = urlParams.get('matchId');
+        const winnerText = urlParams.get('winner');
+        const guestId = urlParams.get('guestId');
+
+        // Predict Pro ka Firebase Configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyCFKhWdoGWWjIs7Z6yIEOZdx58ybp07jD0",
+          authDomain: "playing11-819b0.firebaseapp.com",
+          projectId: "playing11-819b0"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        async function initPayment() {
+            const titleEl = document.getElementById("statusTitle");
+            const textEl = document.getElementById("statusText");
+            const spinnerEl = document.getElementById("spinnerIcon");
+            const retryBtn = document.getElementById("retryBtn");
+
+            retryBtn.style.display = "none";
+            spinnerEl.style.display = "block";
+            titleEl.innerText = "INITIALIZING GATEWAY";
+            textEl.innerText = "Connecting to payment gateway...";
+
+            if (!matchId || !guestId) {
+                spinnerEl.style.display = "none";
+                titleEl.innerText = "INVALID REQUEST";
+                textEl.innerText = "Match details missing. Please go back to Predict Pro.";
+                return;
+            }
+
+            const orderId = "PRD_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+
+            try {
+                // Aapka Cashfree Worker endpoint jo ₹10 charge karega
+                const res = await fetch("https://cashfree-order.samarth7924682.workers.dev", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        amount: 10,
+                        customer_name: "PredictPro_User",
+                        customer_phone: "9999999999"
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.payment_session_id) {
+                    spinnerEl.style.display = "none";
+                    titleEl.innerText = "SECURE CHECKOUT";
+                    textEl.innerText = "Opening payment window...";
+
+                    const cashfree = Cashfree({ mode: "production" });
+                    cashfree.checkout({
+                        paymentSessionId: data.payment_session_id,
+                        redirectTarget: "_self",
+                        onSuccess: async function() {
+                            spinnerEl.style.display = "block";
+                            titleEl.innerText = "PAYMENT SUCCESSFUL";
+                            textEl.innerText = "Unlocking your winning prediction...";
+                            
+                            try {
+                                // Firebase Firestore me entry save kar rahe hain taaki user ko match unlock dikhe
+                                await db.collection("unlocked_matches").add({
+                                    userId: guestId,
+                                    matchId: matchId,
+                                    winner: winnerText || "",
+                                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                            } catch (e) {
+                                console.error("Firebase write error:", e);
+                            }
+
+                            // Wapas Netlify app par redirect kar do
+                            setTimeout(() => {
+                                window.location.replace("https://playing11.netlify.app/");
+                            }, 1200);
+                        },
+                        onFailure: function() {
+                            spinnerEl.style.display = "none";
+                            titleEl.innerText = "PAYMENT FAILED";
+                            textEl.innerText = "Transaction was cancelled or failed. Tap below to retry.";
+                            retryBtn.style.display = "block";
+                        }
+                    });
+                } else {
+                    throw new Error("Session ID missing");
+                }
+            } catch (err) {
+                spinnerEl.style.display = "none";
+                titleEl.innerText = "CONNECTION ERROR";
+                textEl.innerText = "Could not reach payment servers. Check your internet connection.";
+                retryBtn.style.display = "block";
+            }
+        }
+
+        // Page load hote hi payment session request fire ho jayegi
+        window.onload = initPayment;
+    </script>
+</body>
+</html>
