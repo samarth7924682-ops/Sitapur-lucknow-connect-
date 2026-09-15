@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Payment & Match Unlock | Predict Pro</title>
-    <!-- Firebase SDKs -->
+    <title>Unlocking Match | Predict Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <!-- Cashfree V3 SDK -->
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #121418; --card-bg: #1e222b; --gold: #ffb703; --text: #ffffff; --gray: #94a3b8; }
+        :root { --bg: #121418; --card-bg: #1e222b; --gold: #ffb703; --text: #ffffff; --gray: #94a3b8; --red: #e74c3c; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
         .container { background: var(--card-bg); width: 100%; max-width: 400px; padding: 30px 20px; border-radius: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,183,3,0.1); }
@@ -19,15 +17,15 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         h2 { font-family: 'Oswald', sans-serif; color: var(--gold); font-size: 22px; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase; }
         p { font-size: 13px; color: var(--gray); line-height: 1.6; margin-bottom: 25px; }
-        .btn { background: var(--gold); color: #000; border: none; width: 100%; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn { background: var(--gold); color: #000; border: none; width: 100%; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="spinner" id="spinnerIcon"></div>
-        <h2 id="statusTitle">INITIALIZING GATEWAY</h2>
-        <p id="statusText">Establishing secure connection with Cashfree payment server...</p>
+        <h2 id="statusTitle">PROCESSING...</h2>
+        <p id="statusText">Please wait while we verify your payment...</p>
         <button id="retryBtn" class="btn" style="display: none;" onclick="initPayment()">Try Again</button>
     </div>
 
@@ -94,23 +92,27 @@
                         onSuccess: async function() {
                             spinnerEl.style.display = "block";
                             titleEl.innerText = "PAYMENT SUCCESSFUL";
-                            textEl.innerText = "Unlocking your winning prediction...";
+                            textEl.innerText = "Saving unlock status to database...";
                             
                             try {
+                                // Firestore me data save hone ka wait karein
                                 await db.collection("unlocked_matches").add({
                                     userId: guestId,
                                     matchId: matchId,
-                                    winner: winnerText || "",
+                                    winner: decodeURIComponent(winnerText || ""),
                                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                                 });
-                            } catch (e) {
-                                console.error("Firebase write error:", e);
-                            }
 
-                            // Wapas Netlify par redirect karega sath me success aur matchId bhejkar
-                            setTimeout(() => {
+                                textEl.innerText = "Redirecting back to app...";
+                                
+                                // Data save hone ke baad hi redirect hoga
                                 window.location.replace(`https://playing11.netlify.app/?payment=success&matchId=${matchId}`);
-                            }, 1000);
+                            } catch (err) {
+                                spinnerEl.style.display = "none";
+                                titleEl.innerText = "DATABASE ERROR";
+                                textEl.innerText = "Payment successful, but failed to save unlock. Error: " + err.message;
+                                retryBtn.style.display = "block";
+                            }
                         },
                         onFailure: function() {
                             spinnerEl.style.display = "none";
